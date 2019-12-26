@@ -59,7 +59,7 @@ sc_dce_cmd:
         - else:
           - define feedback:<yaml[sc_dce].read[messages.permission]||<script[sc_dce].yaml_key[messages.permission]||&cError>>
       - else if <context.args.get[1].to_lowercase.matches[credits]||null>:
-        - define feedback:&9made&spby&spyour&spfriend&sp&6smellyonionman&9!&nl&9Go&spto&sp&ahttps&co//smellycraft.com/denizence&sp&9for&spinfo.
+        - define feedback:'&2Denizence &9made by your friend &6smellyonionman&nl&9Go to &ahttps&co//smellycraft.com/denizence &9for info.'
       - else if <context.args.get[1].to_lowercase.matches[update]||null>:
         - if <player.has_permission[residence.admin]||null> || <player.is_op||null> || <context.server>:
           - inject <script[<yaml[sc_dce].read[scripts.updater]||<script[sc_dce_defaults].yaml_key[scripts.updater]||sc_common_update>>]>
@@ -161,7 +161,7 @@ sc_dce_menu_flags:
     script:
     - define name:<placeholder[residence_user_current_res].before[.].to_titlecase||null>
     #Are you in a residence? If not, determine empty.
-    - if <[name].matches[]].not>:
+    - if <[name].matches[].not>:
       - define owner:<placeholder[residence_user_current_owner]||null>
       - define subzone:<placeholder[residence_user_current_res].after_last[.].to_titlecase||null>
       #Are you the owner? If so, details. Click for more buttons.
