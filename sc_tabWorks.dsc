@@ -81,6 +81,8 @@ sc_tw_cmd:
         - else if <context.args.get[1].to_lowercase.matches[update]>:
           - inject <script[<yaml[sc_tw].read[scripts.updater]||<script[sc_tw_defaults].yaml_key[scripts.updater]||sc_common_update>>]>
           - stop
+        - else if <context.args.get[1].to_lowercase.matches[credits]>:
+        - define feedback:&9made&spby&spyour&spfriend&sp&6smellyonionman&9!&nl&9Go&spto&sp&ahttps&co//smellycraft.com/tabworks&sp&9for&spinfo.
       - else if <context.args.size.is[==].to[2]>:
         - if <context.args.get[2].to_lowercase.matches[open]>:
           - if <[tabs].contains[<[selector]>]>:
