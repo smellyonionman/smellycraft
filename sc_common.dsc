@@ -116,7 +116,7 @@ sc_common_cmd:
 #####################################
 sc_common_update:
     type: task
-    debug: true
+    debug: false
     definitions: namespace
     script:
     #Headers are required for my server, don't alter them too much
