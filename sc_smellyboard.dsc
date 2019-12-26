@@ -68,7 +68,7 @@ sc_sb_cmd:
         - else:
           - define feedback:<yaml[sc_sb].read[messages.permission]||<script[sc_sb_defaults].yaml_key[messages.permission]||&cError>>
       - else if <context.args.get[1].to_lowercase.matches[credits]>:
-        - define feedback:<element[&aSmelly&2Board &9made by your friend &6smellyonionman&nl&9Go to &ahttps://smellycraft.com/smellyboard &9for info].>
+        - define feedback:'<element[&aSmelly&2Board &9made by your friend &6smellyonionman&nl&9Go to &ahttps://smellycraft.com/smellyboard &9for info].>'
       - else if <context.args.get[1].to_lowercase.matches[update]||null>:
         - if <player.has_permission[<[admin]>]||false> || || <player.is_op||false> || <context.server>:
           - if <context.args.size.is[OR_MORE].than[2]||null>:
