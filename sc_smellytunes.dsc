@@ -77,7 +77,7 @@ sc_tu_cmd:
       - inject <script[<yaml[sc_tu].read[scripts.narrator]||<script[sc_tu_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
 sc_tu_listener:
     type: world
-    debug: true
+    debug: false
     events:
         on reload scripts:
         - if <server.has_file[../Smellycraft/smellytunes.yml].not||false>:
