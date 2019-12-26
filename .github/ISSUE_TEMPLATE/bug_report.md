@@ -1,7 +1,7 @@
 ---
 name: Bug report
 about: Please complete this template for each issue.
-title: Hold on a moment, I didn't edit this yet
+title: Bug Report for [ PLUGIN NAME ]
 labels: bug
 assignees: smellyonionman
 
