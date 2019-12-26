@@ -59,7 +59,7 @@ sc_dce_cmd:
         - else:
           - define feedback:<yaml[sc_dce].read[messages.permission]||<script[sc_dce].yaml_key[messages.permission]||&cError>>
       - else if <context.args.get[1].to_lowercase.matches[credits]||null>:
-        - define feedback:'&2Denizence &9made by your friend &6smellyonionman&nl&9Go to &ahttps&co//smellycraft.com/denizence &9for info.'
+        - define feedback:&9made&spby&spyour&spfriend&sp&6smellyonionman&9!&nl&9Go&spto&sp&ahttps&co//smellycraft.com/denizence&sp&9for&spinfo.
       - else if <context.args.get[1].to_lowercase.matches[update]||null>:
         - if <player.has_permission[residence.admin]||null> || <player.is_op||null> || <context.server>:
           - inject <script[<yaml[sc_dce].read[scripts.updater]||<script[sc_dce_defaults].yaml_key[scripts.updater]||sc_common_update>>]>
