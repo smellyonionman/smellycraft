@@ -1,0 +1,45 @@
+plugins:
+  sc_dm:
+    version: 1.0
+    description: 'Crowd-sourceable prank caster, with scheduler support for April Fool's Day.'
+    url: https://d.smellycraft.com/dmoralizer
+    deps: []
+  sc_dce:
+    version: 1.0
+    description: 'A GUI for Residence.  Much needed and rather easy to use.'
+    url: https://d.smellycraft.com/denizence
+    deps:
+    - PlaceholderAPI
+    - Depenizen
+    - Residence
+  sc_sb:
+    version: 1.0
+    description: 'Displays helpful and very informative information in a packet-based Sidebar.'
+    url: https://d.smellycraft.com/smellyboard
+    deps: []
+  sc_df:
+    version: 1.0
+    description: 'Per-world and per-player PvP configs.  Players opt-in to their defenses.'
+    url: https://d.smellycraft.com/dfender
+    deps: []
+  sc_ti:
+    version: 1.0
+    description: 'Broadcast helpful tips to your players.'
+    url: https://d.smellycraft.com/smellytips
+    deps: []
+  sc_tu:
+    version: 1.0
+    description: 'Give your players MIDI files on Music Discs which work in any Jukebox. Plays with Note Block sounds.'
+    url: https://d.smellycraft.com/smellytunes
+    deps: []
+  sc_dquake:
+    version: 1.0
+    description: 'Feature-packed arena combat suite with built-in level editor.'
+    url: https://d.smellycraft.com/dquake
+    deps: []
+  sc_common:
+    version: 1.0
+    description: 'This file contains task scripts required by all of the plugins, and provides caching and scheduling functions.'
+    url: https://d.smellycraft.com/common
+    deps: []
+    
