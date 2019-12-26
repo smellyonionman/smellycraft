@@ -1,0 +1,27 @@
+settings:
+  default: options
+  divider: vine
+  update: true
+  rows: 2
+permissions:
+  use: tabworks.use
+  admin: tabworks.admin
+messages:
+  reload: '&9Plugin has been reloaded.'
+  manual_perms:
+  - '&9Plugin reloaded. &cWarning:'
+  - '&9Your permissions plugin treats &cnull &9as &ctrue.'
+  - '&9You must deny negative permissions &cexplicitly&9.'
+  prefix: '&9[&2Tab&aWorks&9]'
+  missing_script:
+  - '&c Script [script] was not detected.'
+  - '&c Installation not complete.'
+  - '&c Did you install the common files?'
+  badmenu:
+  - '&cPlease select a choice from the provided list'
+  permission: '&cYou don''t have permission.'
+  args_i: '&9Unused arguments: &c[args]'
+scripts:
+  narrator: sc_common_feedback
+  GUI: sc_common_marquee
+  updater: sc_common_update
