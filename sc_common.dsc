@@ -54,31 +54,6 @@ sc_common_cmd:
     name: smellycraft
     description: <yaml[sc_common].read[messages.command.desc]||<script[sc_common_defaults].yaml_key[messages.command.desc]||Global settings for Smellycraft plugins.>>
     usage: /smellycraft
-    tab complete:
-    - if <player.has_permission[<yaml[sc_common].read[permissions.admin]||<script[sc_common_defaults].yaml_key[permissions.admin]||smellycraft.admin>]> || <player.is_op||false> || <context.server>:
-      - define args1:!|:reload|update|set
-    - if <context.args.size.is[==].to[0]||null>:
-      - determine <[args1]||<list[]>>
-    - else if <context.args.size.is[==].to[1]>:
-      #If half a word, partial matches from tier 1
-      #If word complete, all from tier 2
-      - determine <[args1].filter[starts_with[<context.args.last>]]||<list[]>>
-    - else if <context.args.size.is[==].to[2]>:
-      - if <context.args.get[1].to_lowercase.matches[set]||null>:
-        - determine <list[update|feedback].filter[starts_with[<context.args.last>]]||<list[]>>
-    - else if <context.args.size.is[==].to[3]>:
-      - if <context.args.get[1].to_lowercase.matches[set]||null>:
-        - if <context.args.get[2].matches[feedback]>:
-          - determine <list[mode|force].filter[starts_with[<context.args.last>]]||<list[]>>
-        - else if <context.args.get[2].matches[update]>:
-          - determine <list[true|false].filter[starts_with[<context.args.last>]]||<list[]>>
-    - else if <context.args.size.is[==].to[4]>:
-      - if <context.args.get[1].to_lowercase.matches[set]||null>:
-        - if <context.args.get[2].matches[feedback]>:
-          - if <context.args.get[3].matches[mode]>:
-            - determine <list[chat|action].filter[starts_with[<context.args.last>]]||<list[]>>
-          - else if <context.args.get[3].matches[force]>:
-            - determine <list[true|false].filter[starts_with[<context.args.last>]]||<list[]>>
     script:
     - define namespace:sc_common
     - define admin:<yaml[sc_common].read[permissions.admin]||script[sc_common_defaults].yaml_key[permissions.admin]||smellycraft.admin>>
@@ -124,6 +99,9 @@ sc_common_cmd:
           - define feedback:<[placeholder].replace[[args]].with[<context.args.remove[1|3].separated_by[,&sp]>]>
     - if <[feedback].exists>:
       - inject <script[<yaml[sc_common].read[scripts.narrator]||<script[sc_common_defaults].yaml_key[scripts.narrator]||sc_common_narrator>>]>
+#####################################
+#  DEWEY DECIMAL SYSTEM VERSIONING  #
+#####################################
 sc_common_update:
     type: task
     debug: false
@@ -193,9 +171,6 @@ sc_common_marquee:
       - wait <duration[<[wait]||1s>]>
     - define title:!
     - inventory open d:<context.inventory||<[inv]>>
-#####################################
-#      EVENTS: LOAD/SAVE YAML       #
-#####################################
 sc_common_events:
     type: world
     debug: false
@@ -252,19 +227,3 @@ sc_common_defaults:
       disabled: '&cUpdates disabled.'
       disabled-no: '&9Updates are already disabled.'
       specify: '&cPlease specify enable or disable.'
-#This tree exposes the layout of all commands and arguments with suitable permissions
-sc_common_args:
-  type: yaml data
-  smellycraft:
-    reload: admin
-    update: admin
-    set:
-      feedback:
-        chat:
-        - admin
-        - chatperm
-        actionbar: admin
-        custom: admin
-      update:
-        true: admin
-        false: admin
