@@ -48,38 +48,38 @@ sc_sb_cmd:
     debug: false
     name: smellyboard
     description: <yaml[sc_sb].read[help.description]||Interfaces with the Smellyboard plugin.>
-    usage: /smellyboard ( reload | credits )
+    usage: /smellyboard ( reload | credits | update ( enable | disable ) | freq | max )
     aliases:
     - sidebar
     script:
     - define namespace:sc_sb
     - define admin:<yaml[sc_sb].read[permissions.admin]||<script[sc_sb_defaults].yaml_key[permissions.admin]||smellyboard.admin>>
-    - if <context.args.size.is[==].to[0]||null>:
+    - if <context.args.size.is[==].to[0]||false>:
       - if <player.has_permission[<yaml[sc_sb].read[permissions.use]||<script[sc_sb_defaults].yaml_key[permissions.use]||smellyboard.use>>]>:
         - yaml set <player.uuid>.sc_sb.index:1 id:sc_pcache
         - inventory open d:<inventory[sc_sb_menu]>
       - else:
         - define feedback:<yaml[sc_sb].read[messages.permission]||<script[sc_sb_defaults].yaml_key[messages.permission]||&cError>>
-    - else if <context.args.size.is[MORE].than[0]||null>:
-      - if <context.args.get[1].to_lowercase.matches[reload]||null>:
-        - if <player.has_permission[<[admin]>]||false> || || <player.is_op||false> || <context.server>:
+    - else if <context.args.size.is[MORE].than[0]||false>:
+      - if <context.args.get[1].to_lowercase.matches[reload]||false>:
+        - if <player.has_permission[<[admin]>]||false> || <player.is_op||false> || <context.server>:
           - inject <script[sc_sb_init]>
           - stop
         - else:
           - define feedback:<yaml[sc_sb].read[messages.permission]||<script[sc_sb_defaults].yaml_key[messages.permission]||&cError>>
       - else if <context.args.get[1].to_lowercase.matches[credits]>:
-        - define feedback:&9made&spby&spyour&spfriend&sp&6smellyonionman&9!&nl&9Go&spto&sp&ahttps&co//smellycraft.com/smellyboard&sp&9for&spinfo.
-      - else if <context.args.get[1].to_lowercase.matches[update]||null>:
-        - if <player.has_permission[<[admin]>]||false> || || <player.is_op||false> || <context.server>:
-          - if <context.args.size.is[OR_MORE].than[2]||null>:
-            - if <context.args.get[2].to_lowercase.matches[enable]||null>:
-              - if <yaml[sc_sb].read[settings.update].matches[true|enabled]||null>:
+        - define feedback:&9made&spby&spyour&spfriend&sp&6smellyonionman&nl&9Go&spto&sp&ahttps&co//smellycraft.com/smellyboard&sp&9for&spinfo
+      - else if <context.args.get[1].to_lowercase.matches[update]||false>:
+        - if <player.has_permission[<[admin]>]||false> || <player.is_op||false> || <context.server>:
+          - if <context.args.size.is[OR_MORE].than[2]||false>:
+            - if <context.args.get[2].to_lowercase.matches[enable]||false>:
+              - if <yaml[sc_sb].read[settings.update].matches[(true|enabled)]||false>:
                 - define feedback:<yaml[sc_sb].read[messages.update.enabled-no]||<script[sc_sb_defaults].yaml_key[messages.update.enabled-no]||&cError>>
               - else:
                 - yaml set settings.update:true id:sc_sb
                 - define feedback:<yaml[sc_sb].read[messages.update.enabled]||<script[sc_sb_defaults].yaml_key[messages.update.enabled]||&cError>>
-            - else if <context.args.get[2].to_lowercase.matches[disable]||null>:
-              - if <yaml[sc_sb].read[settings.update].matches[true|enabled].not||null>:
+            - else if <context.args.get[2].to_lowercase.matches[disable]||false>:
+              - if <yaml[sc_sb].read[settings.update].matches[(true|enabled)].not||false>:
                 - define feedback:<yaml[sc_sb].read[messages.update.disabled-no]||||<script[sc_sb_defaults].yaml_key[messages.update.disabled-no]||&cError>>>
               - else:
                 - yaml set settings.update:false id:sc_sb
@@ -91,9 +91,9 @@ sc_sb_cmd:
             - stop
         - else:
           - define feedback:<yaml[sc_sb].read[messages.permission]||<script[sc_sb_defaults].yaml_key[messages.permission]||&cError>>
-      - else if <context.args.get[1].to_lowercase.matches[freq|max]||null>:
-        - if <player.has_permission[<[admin]>]||false> || || <player.is_op||false> || <context.server>:
-          - if <context.args.get[2].is_decimal||null>:
+      - else if <context.args.get[1].to_lowercase.matches[(freq|max)]||false>:
+        - if <player.has_permission[<[admin]>]||false> || <player.is_op||false> || <context.server>:
+          - if <context.args.get[2].is_decimal||false>:
             - define val:<context.args.get[2].round_down.max[1]||3>
             - yaml set settings.<context.args.get[1].to_lowercase>:<[val]||3> id:sc_sb
           - else:
@@ -325,6 +325,7 @@ sc_sb_defaults:
     freq: 5
   permissions:
     use: smellyboard.use
+    bypass: smellyboard.bypass
     admin: smellyboard.admin
   scripts:
     narrator: sc_common_feedback
