@@ -1,0 +1,28 @@
+sc_tu_defaults:
+  settings:
+    max: 3
+    redstone: false
+    range: 5
+    enabled: true
+    dir: smellytunes
+    update: true
+  permissions:
+    use: smellytunes.use
+    bypass: smellytunes.bypass
+    admin: smellytunes.admin
+  scripts:
+    narrator: sc_common_feedback
+    GUI: sc_common_marquee
+    updater: sc_common_update
+  messages:
+    prefix: '&9[&aSmelly&2Tunes&9]'
+    permission: '&cYou don''t have permission.'
+    reload: '&9Plugin has been successfully reloaded.'
+    wait: '&9Please wait...'
+    playing: '&9Now playing:'
+    playcount: '&cToo many songs playing.'
+    nosignal: '&cRedstone signal required.'
+    enabled: '&9Plugin has been &cenabled&9.'
+    disabled: '&9Plugin has been &cdisabled&9.'
+    titlecolor: &a
+    lorecolor: &9
