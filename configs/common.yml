@@ -1,0 +1,29 @@
+settings:
+  feedback: custom
+  update: true
+permissions:
+  admin: smellycraft.admin
+messages:
+  prefix: '&9[&aSmellycraft&9]'
+  admin:
+    set: '&a[setting] &9has been set to [state]&9.'
+    boolean: '&cPlease specify true or false.'
+    reload: '&9Plugin has been reloaded.'
+    args_m: '&cMissing arguments: [args]'
+    permission: '&cYou don''t have permission.'
+    args_i: '&cInvalid arguments: [args]'
+    disabled: '&cPlugin is currently disabled.'
+  update:
+    disabled-no: '&9Updates are already disabled.'
+    enabled-no: '&9Updates are already enabled.'
+    specify: '&cPlease specify enable or disable.'
+    disabled: '&cUpdates disabled.'
+    failed:
+    - '&cVersion could not be checked.'
+    - '&9Try visiting the repository:'
+    - '&ahttps://smellycraft.com/denizen'
+    enabled: '&aUpdates enabled.'
+scripts:
+  narrator: sc_common_feedback
+  GUI: sc_common_marquee
+  updater: sc_common_update
