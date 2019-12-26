@@ -13,10 +13,11 @@ Each plugin features:
 
 **Currently available**:  
 - [denizence](https://github.com/smellyonionman/smellycraft/wiki/Denizence) - User-friendly GUI for Residence
-- [dMoralizer](https://github.com/smellyonionman/smellycraft/wiki/dMoralizer) - Feature-rich prank wrapper with scheduler
+- [TabWorks](https://github.com/smellyonionman/smellycraft/wiki/tabworks) - Tabulated and Paginated menu manager.  Super flexible.
 - [SmellyBoard](https://github.com/smellyonionman/smellycraft/wiki/smellyboard) - Lightweight and super-useful sidebar manager
 
 ## Coming Q1 2020
+- \[dMoralizer\] Feature-rich prank wrapper with scheduler
 - \[Smellytunes\] Feature-rich jukebox player for MIDI files
 - \[dFender\] Per-world and per-player PvP protections
 - \[dQuake\] The definitive PVP arena solution with every god damn feature possible
