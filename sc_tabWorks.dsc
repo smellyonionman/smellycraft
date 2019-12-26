@@ -5,7 +5,7 @@
 #               Version 1.0               #
 #-----------------------------------------#
 #     Updates and notes are found at:     #
-#    https://smellycraft.com/tabWorks     #
+#   https://d.smellycraft.com/tabWorks    #
 #-----------------------------------------#
 #    You may use, modify or share this    #
 #    script, provided you don't remove    #
