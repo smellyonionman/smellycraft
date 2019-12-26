@@ -32,6 +32,11 @@ plugins:
     description: 'Give your players MIDI files on Music Discs which work in any Jukebox. Plays with Note Block sounds.'
     url: https://d.smellycraft.com/smellytunes
     deps: []
+  sc_tw:
+    version: 1.0
+    description: 'Multidimensional pagination for an all-in-one menu. Highly customizable.'
+    url: https://d.smellycraft.com/smellytunes
+    deps: []
   sc_dquake:
     version: 1.0
     description: 'Feature-packed arena combat suite with built-in level editor.'
@@ -42,4 +47,3 @@ plugins:
     description: 'This file contains task scripts required by all of the plugins, and provides caching and scheduling functions.'
     url: https://d.smellycraft.com/common
     deps: []
-    
