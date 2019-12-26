@@ -37,6 +37,7 @@ sc_tu_cmd:
     type: command
     debug: false
     name: smellytunes
+    description: <yaml[sc_tu].read[messages.description]||Interfaces with the Smellytunes plugin.>
     usage: /smellytunes (reload|enable|disable|update|redstone|range|max|credits)
     script:
     - define namespace:sc_tu
@@ -164,6 +165,7 @@ sc_tu_defaults:
   messages:
     prefix: '&9[&aSmelly&2Tunes&9]'
     permission: '&cYou don''t have permission.'
+    description: 'Interfaces with the Smellytunes plugin.'
     reload: '&9Plugin has been successfully reloaded.'
     wait: '&9Please wait...'
     playing: '&9Now playing:'
