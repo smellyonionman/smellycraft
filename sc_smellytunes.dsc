@@ -2,7 +2,7 @@
 # Made by Smellyonionman for Smellycraft. #
 #          onion@smellycraft.com          #
 #    Tested on Denizen-1.1.1-b4492-DEV    #
-#               Version 0.9               #
+#              Version 0.9.1              #
 #-----------------------------------------#
 #     Updates and notes are found at:     #
 #  https://d.smellycraft.com/smellytunes  #
@@ -13,7 +13,7 @@
 ###########################################
 sc_tu_init:
     type: task
-    debug: true
+    debug: false
     script:
     - define namespace:sc_tu
     - define admin:<yaml[sc_tu].read[permissions.admin]||<script[sc_tu_defaults].yaml_key[permissions.admin]||smellytunes.admin>>
@@ -24,14 +24,13 @@ sc_tu_init:
       - ~yaml create id:sc_tu
       - ~yaml loadtext:<script[sc_tu_defaults].to_json> id:sc_tu
       - ~yaml savefile:../Smellycraft/smellytunes.yml id:sc_tu
-      - yaml set version:1.0 id:sc_tu
+      - yaml set version:0.9.1 id:sc_tu
     - if <server.has_file[../Smellycraft/data/jukeboxes.yml]>:
       - ~yaml load:../Smellycraft/data/jukeboxes.yml id:sc_tu_jb
-      - foreach <yaml[sc_tu_jb].list_keys[jukeboxes]> as:jukebox:
+      - foreach <yaml[sc_tu_jb].list_keys[]> as:jukebox:
         - yaml set <[jukebox]>.state:finished id:sc_tu_jb
     - else:
       - ~yaml create id:sc_tu_jb
-      - ~yaml set jukeboxes:[] id:sc_tu_jb
     - define feedback:<yaml[sc_tu].read[messages.reload]||<script[sc_tu_defaults].yaml_key[messages.reload]||&cError>>
     - inject <script[<yaml[sc_tu].read[scripts.narrator]||<script[sc_tu_defaults].yaml_key[scripts.narrator]>>]>
 sc_tu_cmd:
@@ -111,10 +110,10 @@ sc_tu_listener:
               - if <[redstone].not.or[<context.location.power.is[MORE].than[0]>]>:
                 - if <player.gamemode.id.is[==].to[0]>:
                   - take <context.item>
-                - yaml set jukeboxes.<context.location.simple>.track:<context.item.nbt[smellytunes]> id:sc_tu_jb
-                - yaml set jukeboxes.<context.location.simple>.scriptname:<context.item.scriptname> id:sc_tu_jb
-                - yaml set jukeboxes.<context.location.simple>.state:playing id:sc_tu_jb
-                - yaml set jukeboxes.<context.location.simple>.queue:<queue> id:sc_tu_jb
+                - yaml set <context.location.simple>.track:<context.item.nbt[smellytunes]> id:sc_tu_jb
+                - yaml set <context.location.simple>.scriptname:<context.item.scriptname> id:sc_tu_jb
+                - yaml set <context.location.simple>.state:playing id:sc_tu_jb
+                - yaml set <context.location.simple>.queue:<queue> id:sc_tu_jb
                 - yaml set sc_tu.playcount.<context.item.scriptname>:++ id:sc_<player.uuid>
                 - yaml set sc_tu.playing:++ id:sc_cache
                 - define range:<yaml[sc_tu].read[settings.range]||<script[sc_tu_defaults].yaml_key[settings.range]||5>>
@@ -123,7 +122,7 @@ sc_tu_listener:
                 - inject <script[<yaml[sc_tu].read[scripts.narrator]||<script[sc_tu_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
                 - define dir:<yaml[sc_tu].read[settings.dir]||<script[sc_tu_defaults].yaml_key[settings.dir]||smellytunes>>
                 - ~midi file:<[dir]>/<context.item.nbt[smellytunes]> <context.location> volume:<[volume]>
-                - yaml set jukeboxes.<context.location.simple>.state:finished id:sc_tu_jb
+                - yaml set <context.location.simple>.state:finished id:sc_tu_jb
                 - yaml set sc_tu.playing:-- id:sc_cache
               - else:
                 - define feedback:<yaml[sc_tu].read[messages.nosignal]||<script[sc_tu_defaults].yaml_key[messages.nosignal]||&cError>>
@@ -140,13 +139,13 @@ sc_tu_eject:
     type: task
     debug: false
     script:
-    - foreach <yaml[sc_tu_jb].list_keys[jukeboxes]> as:jukebox:
+    - foreach <yaml[sc_tu_jb].list_keys[]> as:jukebox:
       - if <[jukebox].matches[<context.location.simple>]>:
         - determine passively cancelled
         - midi cancel <context.location>
-        - queue <yaml[sc_tu_jb].read[jukeboxes.<[jukebox]>.queue]> stop
+        - queue <yaml[sc_tu_jb].read[.<[jukebox]>.queue]> stop
         - drop <item[<yaml[sc_tu_jb].read[<[jukebox]>.scriptname]>]> <context.location.relative[0,1,0]>
-        - yaml set jukeboxes.<[jukebox]>:! id:sc_tu_jb
+        - yaml set <[jukebox]>:! id:sc_tu_jb
         - stop
 sc_tu_defaults:
   type: yaml data
