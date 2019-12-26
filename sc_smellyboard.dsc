@@ -47,7 +47,7 @@ sc_sb_cmd:
     type: command
     debug: false
     name: smellyboard
-    description: <yaml[sc_sb].read[help.description]||Interfaces with the Smellyboard plugin.>
+    description: <yaml[sc_sb].read[messages.description]||Interfaces with the Smellyboard plugin.>
     usage: /smellyboard ( reload | credits | update ( enable | disable ) | freq | max )
     aliases:
     - sidebar
