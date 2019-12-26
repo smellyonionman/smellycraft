@@ -1,121 +1,119 @@
-sc_dce_defaults:
-  type: yaml data
-  settings:
-    update: true
-  scripts:
-    narrator: sc_common_feedback
-    GUI: sc_common_marquee
-    updater: sc_common_update
+settings:
+  update: true
+scripts:
+  narrator: sc_common_feedback
+  GUI: sc_common_marquee
+  updater: sc_common_update
+messages:
+  prefix: '&a&lb&2Denizence&a&rb'
+  description: 'GUI for Residence Users'
+  reload: '&9Plugin has been reloaded.'
+  permission: '&cYou don''t have permission.'
+  missing_script:
+  - '&c Script [script] was not detected.'
+  - '&c Installation not complete.'
+  - '&c Did you install the common files?'
+  enter_name: '&9Enter Residence name.&nl&7To resume chatting, type cancel, wait 60 seconds or just relog.'
+  enter_subzone: '&9Enter Subzone name.&nl&7To resume chatting, type cancel, wait 60 seconds or just relog.'
+  enter_player: '&9Enter Player name.&nl&7To resume chatting, type cancel, wait 60 seconds or just relog.'
+  enter_message: '&9Enter your message. &aColor codes supported.&nl&7To resume chatting, type cancel, wait 60 seconds or just relog.'
+  enter_price: '&9Enter the &6price &9to charge per rental term.&nl&7To resume chatting, type cancel, wait 60 seconds or just relog'
+  enter_term: '&9Renewal price&co &6[price]&9. Enter lease term next.&nl&7To resume chatting, type cancel, wait 60 seconds or just relog.'
+  allow_renew: '&9Lease term has been set to &a[days] &9(real) days. Allow renewing? Y/N.&nl&7To resume chatting, type cancel, wait 60 seconds or just relog.'
+  stay_rentable: '&9Renew set to [renewable]&9. Stay in market? Y/N.&nl&7To resume chatting, type cancel, wait 60 seconds or just relog.'
+  autopay: 'Stay in market set to [T/F]&9. Allow auto-pay? Y/N.&nl&7To resume chatting, type cancel, wait 60 seconds or just relog.'
+  numbers_only: '&cPlease use numbers only.'
+  boolean_only: '&cPlease use Y or N only.'
+gui:
+  marquee:
+    default: '   &1&lDenizence &2&oby Smellycraft'
+    click_type: '     &8Left or Right click only.'
+    cancel_res:
+    - '&cResidence not created.'
+    - '&cWere both corners unclaimed?'
+    cancel_subzone:
+    - '      &cSubzone not created.'
+    - '   &cWere both corners inside?'
+    cancel_message: '   &cNo changes to [type] message.'
+    message_removed: '     &9Removed [type] message.'
+    cancel_player: '     &cNo player chosen to flag.'
+    cancel_list: '    &cArea was not put up for rent.'
+  current:
+    material:
+      create: wooden_axe
+      owned: oak_door
+      not_owned: iron_door
+    display:
+      create: '&aCreate new Residence'
+      owned: '&aWelcome Home'
+      not_owned: '&cClaimed Land'
+    lore:
+      name: '&6[name]'
+      owned: '&9You own this Residence.'
+      not_owned: '&6&o[name]&9, Owned by &6[owner]'
+      size: '&9Size: &a[size]'
+      subzone: '&9Current Subzone: &6&o[subzone]'
+      remove: '&fClick to remove.'
+      forsale: '&9Residence is &afor sale&9.'
+      saleprice: '&9Price&co &6[saleprice]'
+      create: '&fClick to create a residence.'
+  flags:
+    material: lime_banner
+    display: '&aAdjust Flags'
+    lore:
+      set_global: '&9Set &6global &fpermissions with &aLeft click'
+      set_player: '&9Set &6player &fpermissions with &aRight click'
+      editing_zone: '&9Editing Subzone&co &6&o[subzone]'
   messages:
-    prefix: '&a&lb&2Denizence&a&rb'
-    description: 'GUI for Residence Users'
-    reload: '&9Plugin has been reloaded.'
-    permission: '&cYou don''t have permission.'
-    missing_script:
-    - '&c Script [script] was not detected.'
-    - '&c Installation not complete.'
-    - '&c Did you install the common files?'
-    enter_name: '&9Enter Residence name.&nl&7To resume chatting, type cancel, wait 60 seconds or just relog.'
-    enter_subzone: '&9Enter Subzone name.&nl&7To resume chatting, type cancel, wait 60 seconds or just relog.'
-    enter_player: '&9Enter Player name.&nl&7To resume chatting, type cancel, wait 60 seconds or just relog.'
-    enter_message: '&9Enter your message. &aColor codes supported.&nl&7To resume chatting, type cancel, wait 60 seconds or just relog.'
-    enter_price: '&9Enter the &6price &9to charge per rental term.&nl&7To resume chatting, type cancel, wait 60 seconds or just relog'
-    enter_term: '&9Renewal price&co &6[price]&9. Enter lease term next.&nl&7To resume chatting, type cancel, wait 60 seconds or just relog.'
-    allow_renew: '&9Lease term has been set to &a[days] &9(real) days. Allow renewing? Y/N.&nl&7To resume chatting, type cancel, wait 60 seconds or just relog.'
-    stay_rentable: '&9Renew set to [renewable]&9. Stay in market? Y/N.&nl&7To resume chatting, type cancel, wait 60 seconds or just relog.'
-    autopay: 'Stay in market set to [T/F]&9. Allow auto-pay? Y/N.&nl&7To resume chatting, type cancel, wait 60 seconds or just relog.'
-    numbers_only: '&cPlease use numbers only.'
-    boolean_only: '&cPlease use Y or N only.'
-  gui:
-    marquee:
-      default: '   &1&lDenizence &2&oby Smellycraft'
-      click_type: '     &8Left or Right click only.'
-      cancel_res:
-      - '&cResidence not created.'
-      - '&cWere both corners unclaimed?'
-      cancel_subzone:
-      - '      &cSubzone not created.'
-      - '   &cWere both corners inside?'
-      cancel_message: '   &cNo changes to [type] message.'
-      message_removed: '     &9Removed [type] message.'
-      cancel_player: '     &cNo player chosen to flag.'
-      cancel_list: '    &cArea was not put up for rent.'
-    current:
-      material:
-        create: wooden_axe
-        owned: oak_door
-        not_owned: iron_door
-      display:
-        create: '&aCreate new Residence'
-        owned: '&aWelcome Home'
-        not_owned: '&cClaimed Land'
-      lore:
-        name: '&6[name]'
-        owned: '&9You own this Residence.'
-        not_owned: '&6&o[name]&9, Owned by &6[owner]'
-        size: '&9Size: &a[size]'
-        subzone: '&9Current Subzone: &6&o[subzone]'
-        remove: '&fClick to remove.'
-        forsale: '&9Residence is &afor sale&9.'
-        saleprice: '&9Price&co &6[saleprice]'
-        create: '&fClick to create a residence.'
-    flags:
-      material: lime_banner
-      display: '&aAdjust Flags'
-      lore:
-        set_global: '&9Set &6global &fpermissions with &aLeft click'
-        set_player: '&9Set &6player &fpermissions with &aRight click'
-        editing_zone: '&9Editing Subzone&co &6&o[subzone]'
-    messages:
-      material: name_tag
-      display: '&aChange Messages'
-      lore:
-        header: '&9Change the Enter or Leave messages.'
-        buttons_1: '&aLeft-click &ffor Enter, &aRight-click &ffor Leave.'
-        buttons_2: '&aShift-click &f to remove a message.'
-        editing_zone: '&9Editing Subzone&co &6&o[subzone]'
-    size:
-      material: stick
-      display: '&aExpand or Contract'
-      lore:
-        header: '&9Look up, down, or in any direction.'
-        buttons: '&aLeft-click &fexpands, &aRight-click &fcontracts.'
-        limits_1: '&cYour size limits are&co'
-        limits_2: '&7X&co &a[maxew]&7, Y&co &a[maxud]&7, Z&co &a[maxns]'
-        editing_zone: '&9Editing Subzone&co &6&o[subzone]'
-    zones:
-      material: oak_fence
-      display: '&aManage Subzones'
-      lore:
-        header: '&9Select two points within a Residence.'
-        buttons: '&aLeft-click &fcreates, &aRight-click &fremoves.'
-        editing_zone: '&9Editing Subzone&co &6&o[subzone]'
-    market:
-      material:
-        list: tripwire_hook
-        unlist: tripwire_hook
-        rented: tripwire_hook
-        forrent: tripwire_hook
-        sell: oak_sign
-        unsell: oak_sign
-        forsale: oak_sign
-      display:
-        list: '&aMake Rentable'
-        unlist: '&aRemove from Market'
-        rented: '&aCurrently Renting'
-        forrent: '&aSpace for Rent'
-        sell: '&aSell this Residence'
-        unsell: '&aRemove from Market'
-        forsale: '&aFor Sale'
-      lore:
-        tenant: '&9Currently rented by &6[renter]'
-        due: '&9Renewal date&co &a[renewdate]'
-        cost: '&9You will be debited &6[rentprice]'
-        vacant: '&9Rentable for &6[rentprice]'
-        unrent: '&fClick to unrent.'
-        list: '&fClick to put this area up for rent.'
-        unlist: '&fClick to remove from the market.'
-        period: '&9Renews every &a[rentperiod] day(s).'
-        newrent: '&fClick to rent this property.'
-        evict: '&fClick to evict this tenant.'
-        editing_zone: '&9Editing Subzone&co &6&o[subzone]'
+    material: name_tag
+    display: '&aChange Messages'
+    lore:
+      header: '&9Change the Enter or Leave messages.'
+      buttons_1: '&aLeft-click &ffor Enter, &aRight-click &ffor Leave.'
+      buttons_2: '&aShift-click &f to remove a message.'
+      editing_zone: '&9Editing Subzone&co &6&o[subzone]'
+  size:
+    material: stick
+    display: '&aExpand or Contract'
+    lore:
+      header: '&9Look up, down, or in any direction.'
+      buttons: '&aLeft-click &fexpands, &aRight-click &fcontracts.'
+      limits_1: '&cYour size limits are&co'
+      limits_2: '&7X&co &a[maxew]&7, Y&co &a[maxud]&7, Z&co &a[maxns]'
+      editing_zone: '&9Editing Subzone&co &6&o[subzone]'
+  zones:
+    material: oak_fence
+    display: '&aManage Subzones'
+    lore:
+      header: '&9Select two points within a Residence.'
+      buttons: '&aLeft-click &fcreates, &aRight-click &fremoves.'
+      editing_zone: '&9Editing Subzone&co &6&o[subzone]'
+  market:
+    material:
+      list: tripwire_hook
+      unlist: tripwire_hook
+      rented: tripwire_hook
+      forrent: tripwire_hook
+      sell: oak_sign
+      unsell: oak_sign
+      forsale: oak_sign
+    display:
+      list: '&aMake Rentable'
+      unlist: '&aRemove from Market'
+      rented: '&aCurrently Renting'
+      forrent: '&aSpace for Rent'
+      sell: '&aSell this Residence'
+      unsell: '&aRemove from Market'
+      forsale: '&aFor Sale'
+    lore:
+      tenant: '&9Currently rented by &6[renter]'
+      due: '&9Renewal date&co &a[renewdate]'
+      cost: '&9You will be debited &6[rentprice]'
+      vacant: '&9Rentable for &6[rentprice]'
+      unrent: '&fClick to unrent.'
+      list: '&fClick to put this area up for rent.'
+      unlist: '&fClick to remove from the market.'
+      period: '&9Renews every &a[rentperiod] day(s).'
+      newrent: '&fClick to rent this property.'
+      evict: '&fClick to evict this tenant.'
+      editing_zone: '&9Editing Subzone&co &6&o[subzone]'
