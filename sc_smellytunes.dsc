@@ -1,3 +1,16 @@
+###########################################
+# Made by Smellyonionman for Smellycraft. #
+#          onion@smellycraft.com          #
+#    Tested on Denizen-1.1.1-b4492-DEV    #
+#               Version 0.9               #
+#-----------------------------------------#
+#     Updates and notes are found at:     #
+#  https://d.smellycraft.com/smellytunes  #
+#-----------------------------------------#
+#    You may use, modify or share this    #
+#    script, provided you don't remove    #
+#    or alter lines 1-13 of this file.    #
+###########################################
 sc_tu_init:
     type: task
     debug: true
