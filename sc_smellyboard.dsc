@@ -68,7 +68,7 @@ sc_sb_cmd:
         - else:
           - define feedback:<yaml[sc_sb].read[messages.permission]||<script[sc_sb_defaults].yaml_key[messages.permission]||&cError>>
       - else if <context.args.get[1].to_lowercase.matches[credits]>:
-        - define feedback:&9made&spby&spyour&spfriend&sp&6smellyonionman&9!&nl&9Go&spto&sp&ahttps&co//smellycraft.com/tabworks&sp&9for&spinfo.
+        - define feedback:&9made&spby&spyour&spfriend&sp&6smellyonionman&9!&nl&9Go&spto&sp&ahttps&co//smellycraft.com/smellyboard&sp&9for&spinfo.
       - else if <context.args.get[1].to_lowercase.matches[update]||null>:
         - if <player.has_permission[<[admin]>]||false> || || <player.is_op||false> || <context.server>:
           - if <context.args.size.is[OR_MORE].than[2]||null>:
