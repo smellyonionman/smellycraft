@@ -1,52 +1,50 @@
-sc_sb_defaults:
-  type: yaml data
-  settings:
-    enabled: true
-    update: true
-    max: 3
-    freq: 5
-  permissions:
-    use: smellyboard.use
-    admin: smellyboard.admin
-  scripts:
-    narrator: sc_common_feedback
-    GUI: sc_common_marquee
-    updater: sc_common_update
-  lines:
-    balance: true
-    waypoint: true
-    exhaustion: true
-    lag: true
-    mob: true
-    slime: true
-    power: true
-    damage: true
-    item: true
-    debug: true
-  messages:
-    prefix: '&9[&aSmelly&2Board&9]'
-    description: 'Interfaces with the Smellyboard plugin.'
-    reload: '&9Smellyboard reloaded.'
-    limit: '&cToo many items active'
-    title: '&7&lSmellyboard'
-    menu: '           &0&lHUD Selector'
-    enabled: '&9Currently &aenabled'
-    disabled: '&9Currently &cdisabled'
-    denied: '&cYou don''t have permission.'
-    linename: '&oEnter name of [line]&co'
-    cancelled: '&7Input cancelled. Display unaltered.'
-    missing_script:
-    - '&c Script [script] was not detected.'
-    - '&c Installation not complete.'
-    - '&c Did you install the common files?'
-  custom:
-    job:
-      icon: iron_pickaxe
-      display: '&aJob Stats'
-      permissions:
-      - group.players
-      lore:
-      - '&9Displays current &alevel'
-      - '&9and &aXP &9for a given Job'
-      input: true
-      output: '&9<[var].to_titlecase||&cError>: &aLevel &6<player.jobs[<[var]>].xp.level||&c?>&a, &6<player.jobs[<[var]>].xp||&c?> &axp'
+settings:
+  enabled: true
+  update: true
+  max: 3
+  freq: 5
+permissions:
+  use: smellyboard.use
+  admin: smellyboard.admin
+scripts:
+  narrator: sc_common_feedback
+  GUI: sc_common_marquee
+  updater: sc_common_update
+lines:
+  balance: true
+  waypoint: true
+  exhaustion: true
+  lag: true
+  mob: true
+  slime: true
+  power: true
+  damage: true
+  item: true
+  debug: true
+messages:
+  prefix: '&9[&aSmelly&2Board&9]'
+  description: 'Interfaces with the Smellyboard plugin.'
+  reload: '&9Smellyboard reloaded.'
+  limit: '&cToo many items active'
+  title: '&7&lSmellyboard'
+  menu: '           &0&lHUD Selector'
+  enabled: '&9Currently &aenabled'
+  disabled: '&9Currently &cdisabled'
+  denied: '&cYou don''t have permission.'
+  linename: '&oEnter name of [line]&co'
+  cancelled: '&7Input cancelled. Display unaltered.'
+  missing_script:
+  - '&c Script [script] was not detected.'
+  - '&c Installation not complete.'
+  - '&c Did you install the common files?'
+custom:
+  job:
+    icon: iron_pickaxe
+    display: '&aJob Stats'
+    permissions:
+    - group.players
+    lore:
+    - '&9Displays current &alevel'
+    - '&9and &aXP &9for a given Job'
+    input: true
+    output: '&9<[var].to_titlecase||&cError>: &aLevel &6<player.jobs[<[var]>].xp.level||&c?>&a, &6<player.jobs[<[var]>].xp||&c?> &axp'
