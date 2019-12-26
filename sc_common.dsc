@@ -1,11 +1,11 @@
 ###########################################
 # Made by Smellyonionman for Smellycraft. #
 #          onion@smellycraft.com          #
-#    Tested on Denizen-1.1.0-b4492-DEV    #
-#               Version 1.0               #
+#    Tested on Denizen-1.1.2-b4492-DEV    #
+#               Version 0.2               #
 #-----------------------------------------#
 #     Updates and notes are found at:     #
-#     https://smellycraft.com/denizen     #
+#       https://d.smellycraft.com/        #
 #-----------------------------------------#
 #    You may use, modify or share this    #
 #    script, provided you don't remove    #
@@ -16,9 +16,7 @@ sc_common_init:
     debug: false
     script:
     - define namespace:sc_common
-    #This task will only output feedback to privileged users
     - define targets:!|:<server.list_online_players.filter[is_op]||null>
-    #Initialize global plugin settings
     - if <server.has_file[../Smellycraft/common.yml]||null>:
       - if <yaml.list.contains[sc_common]>:
         - ~yaml unload id:sc_common
@@ -32,27 +30,22 @@ sc_common_init:
       - ~yaml loadtext:<[payload]> id:sc_common
       - yaml set type:! id:sc_common
       - ~yaml savefile:../Smellycraft/common.yml id:sc_common
-      - yaml set version:1.0 id:sc_common
-    #Initialize scheduler
+      - yaml set version:0.1 id:sc_common
     - if <server.has_file[../Smellycraft/schedules.yml]||false>:
       - ~yaml load:../Smellycraft/schedules.yml id:sc_schedules
     - else:
       - ~yaml create id:sc_schedules
       - ~yaml savefile:../Smellycraft/schedules.yml id:sc_schedules
-    #Load changes to any hand-edited files which correspond to logged-in players
     - foreach <server.list_online_players>:
       - adjust <queue> linked_player:<player[<[value]>]>
       - if <server.has_file[../Smellycraft/playerdata/<player.uuid>.yml].not>:
         - yaml create id:sc_<player.uuid>
       - else:
         - yaml load:../Smellycraft/playerdata/<player.uuid>.yml id:sc_<player.uuid>
-    #Initialize plugins cache
     - if <yaml.list.contains[sc_cache].not||null>:
       - yaml create id:sc_cache
-    #Initialize player cache
     - if <yaml.list.contains[sc_pcache].not||null>:
       - yaml create id:sc_pcache
-    #Brag about it
     - define feedback:<yaml[sc_common].read[messages.admin.reload]||<script[sc_common_defaults].yaml_key[messages.admin.reload]>>
     - inject <script[<yaml[sc_common].read[scripts.narrator]||<script[sc_common_defaults].yaml_key[scripts.narrator]>>]>
 sc_common_cmd:
@@ -61,35 +54,55 @@ sc_common_cmd:
     name: smellycraft
     description: <yaml[sc_common].read[messages.command.desc]||<script[sc_common_defaults].yaml_key[messages.command.desc]||Global settings for Smellycraft plugins.>>
     usage: /smellycraft
+    tab complete:
+    - if <player.has_permission[<yaml[sc_common].read[permissions.admin]||<script[sc_common_defaults].yaml_key[permissions.admin]||smellycraft.admin>]> || <player.is_op||false> || <context.server>:
+      - define args1:!|:reload|update|set
+    - if <context.args.size.is[==].to[0]||null>:
+      - determine <[args1]||<list[]>>
+    - else if <context.args.size.is[==].to[1]>:
+      #If half a word, partial matches from tier 1
+      #If word complete, all from tier 2
+      - determine <[args1].filter[starts_with[<context.args.last>]]||<list[]>>
+    - else if <context.args.size.is[==].to[2]>:
+      - if <context.args.get[1].to_lowercase.matches[set]||null>:
+        - determine <list[update|feedback].filter[starts_with[<context.args.last>]]||<list[]>>
+    - else if <context.args.size.is[==].to[3]>:
+      - if <context.args.get[1].to_lowercase.matches[set]||null>:
+        - if <context.args.get[2].matches[feedback]>:
+          - determine <list[mode|force].filter[starts_with[<context.args.last>]]||<list[]>>
+        - else if <context.args.get[2].matches[update]>:
+          - determine <list[true|false].filter[starts_with[<context.args.last>]]||<list[]>>
+    - else if <context.args.size.is[==].to[4]>:
+      - if <context.args.get[1].to_lowercase.matches[set]||null>:
+        - if <context.args.get[2].matches[feedback]>:
+          - if <context.args.get[3].matches[mode]>:
+            - determine <list[chat|action].filter[starts_with[<context.args.last>]]||<list[]>>
+          - else if <context.args.get[3].matches[force]>:
+            - determine <list[true|false].filter[starts_with[<context.args.last>]]||<list[]>>
     script:
     - define namespace:sc_common
     - define admin:<yaml[sc_common].read[permissions.admin]||script[sc_common_defaults].yaml_key[permissions.admin]||smellycraft.admin>>
-    #Single-argument commands
-    - if <context.args.size.is[==].to[1]||null>:
-      - if <context.args.get[1].to_lowercase.matches[reload]||null>:
-        - if <player.has_permission[<[admin]>]> || <player.is_op> || <context.server> || false:
+    - if <context.args.size.is[==].to[1]||false>:
+      - if <context.args.get[1].to_lowercase.matches[reload]||false>:
+        - if <player.has_permission[<[admin]>]||false> || <player.is_op||false> || <context.server>:
           - inject <script[sc_common_init]>
           - stop
-      - else if <context.args.get[1].to_lowercase.matches[update]||null>:
-        - if <player.has_permission[<[admin]>]> || <player.is_op >|| <context.server> || false:
+      - else if <context.args.get[1].to_lowercase.matches[update]||false>:
+        - if <player.has_permission[<[admin]>]||false> || <player.is_op||false> || <context.server>:
           - inject <script[<yaml[sc_common].read[scripts.updater]||<script[sc_common_defaults].yaml_key[scripts.updater]>>]>
           - stop
-      - else if <context.args.get[1].to_lowercase.matches[set]||null>:
+      - else if <context.args.get[1].to_lowercase.matches[set]||false>:
         - define placeholder:<yaml[sc_common].read[messages.admin.args_m]||<script[sc_common_defaults].yaml_key[messages.admin.args_m]||&cError>>
         - define feedback:<element[<[placeholder]>].replace[[args]].with[&ltsetting&gt&sp(&ltsubsetting&gt)&sp&ltstate&gt]>
-    #Double-argument commands
-    - else if <context.args.size.is[==].to[2]||null>:
-      #If not enough args supplied to 'set'
-      - if <context.args.get[1].to_lowercase.matches[set]||null>:
+    - else if <context.args.size.is[==].to[2]||false>:
+      - if <context.args.get[1].to_lowercase.matches[set]||false>:
         - define placeholder:<yaml[sc_common].read[messages.admin.args_m]||<script[sc_common_defaults].yaml_key[messages.admin.args_m]||&cError>>
         - define feedback:<element[<[placeholder].replace[[args]].with[(&ltsubsetting&gt)&sp&ltstate&gt]>]>
-    #Three arguments
-    - else if <context.args.size.is[==].to[3]||null>:
-      #Change a setting without reloading
-      - if <context.args.get[1].to_lowercase.matches[set]||null>:
+    - else if <context.args.size.is[==].to[3]||false>:
+      - if <context.args.get[1].to_lowercase.matches[set]||false>:
         - if <context.args.get[2].to_lowercase.matches[update]>:
           - if <context.args.get[3].to_lowercase.matches[(true|false)]||false>:
-            - if <player.has_permission[<[admin]>]> || <player.is_op> || false:
+            - if <player.has_permission[<[admin]>]||false> || <player.is_op||false> || <context.server>:
               - yaml set settings.<context.args.get[2].to_lowercase>:<context.args.get[3].to_lowercase> id:sc_common
               - define placeholder:<yaml[sc_common].read[messages.admin.set]||<script[sc_common_defaults].yaml_key[messages.admin.set]||&cError>>
               - define feedback:<[placeholder].replace[[setting]].with[<context.args.get[2].to_lowercase>].replace[[state]].with[<context.args.get[3].to_lowercase>]>
@@ -111,22 +124,17 @@ sc_common_cmd:
           - define feedback:<[placeholder].replace[[args]].with[<context.args.remove[1|3].separated_by[,&sp]>]>
     - if <[feedback].exists>:
       - inject <script[<yaml[sc_common].read[scripts.narrator]||<script[sc_common_defaults].yaml_key[scripts.narrator]||sc_common_narrator>>]>
-#####################################
-#     INJECT: CHECK FOR UPDATES     #
-#####################################
 sc_common_update:
     type: task
     debug: false
     definitions: namespace
     script:
-    #Headers are required for my server, don't alter them too much
     - ~webget https://d.smellycraft.com/update save:sc_versions headers:host/smellycraft.com:443|user-agent/smellycraft
     - define feedback:!
     - if <entry[sc_versions].failed>:
       - define feedback:<yaml[sc_common].read[messages.update.failed]||<script[sc_common_defaults].yaml_key[messages.update.failed]>>
     - else:
       - ~yaml loadtext:<entry[sc_versions].result> id:sc_versions
-      #Allow for comparison of version numbers formatted like 4.3.2.1
       - define local:<yaml[<[namespace]>].read[version].split[.]||0>
       - define remote:<yaml[sc_versions].read[plugins.<[namespace]>.version].split[.]||-1>
       - foreach <[local]||null>:
@@ -153,19 +161,14 @@ sc_common_feedback:
       - define targets:<player||<list[]>>
     - if <[targets].matches[null]>:
       - stop
-    #Chat messages should be prefixed for easy recognition
     - define prefix:<yaml[<[namespace]>].read[messages.prefix]||<script[<[namespace]>_defaults].yaml_key[messages.prefix]||sc_common>>
-    #If configured to override player choices... (1)
     - if <yaml[sc_common].read[settings.feedback.force]||false>:
-      #And configured to use text chat...
       - if <yaml[sc_common].read[settings.feedback.mode].matches[chat|narrate]||true>:
         - define men_of_talk:!|:<[targets]>
       - else:
         - define men_of_action:!|:<[targets]>
-    #...or if players are allowed to choose for themselves (1)
     - else:
       - foreach <[targets]>:
-        #And have not elected for actionbar text... (2)
         - if <yaml[sc_<[value].as_player.uuid>].read[smellycraft.options.feedback].matches[chat|narrate]||true>:
           - define men_of_talk:|:<[value].as_player>
         - else:
@@ -176,6 +179,7 @@ sc_common_feedback:
       - foreach <[feedback]>:
         - actionbar <element[<[value]||&cError>].unescaped.parse_color.parsed> targets:<[men_of_action]>
         - wait <duration[2s]>
+    - define feedback:!
 #####################################
 # MARQUEE: ANIMATED MENU TITLE TEXT #
 #####################################
@@ -184,14 +188,10 @@ sc_common_marquee:
     debug: false
     definitions: title|wait|inv
     script:
-    #The title is broken into pieces to better fit the space provided for GUI title
     - repeat <[title].size>:
-      #Switch the title of a fake inventory for the values in our list
       - inventory open d:in@generic[size=<context.inventory.size||<[inv].size>>;contents=null;title=<[title].get[<[value]>].unescaped.parse_color>]
-      #Give the player a short time to read it
       - wait <duration[<[wait]||1s>]>
     - define title:!
-    #Go back to the previous inventory
     - inventory open d:<context.inventory||<[inv]>>
 #####################################
 #      EVENTS: LOAD/SAVE YAML       #
@@ -201,25 +201,20 @@ sc_common_events:
     debug: false
     events:
         on reload scripts:
-        #Fires on first-run and after deleting config (and reloading)
         - if <server.has_file[../Smellycraft/common.yml].not>:
           - inject <script[sc_common_init]>
         on server start priority:-1:
-        #Also fires when server is started, to accomodate presence of config file
         - inject <script[sc_common_init]>
         on player join:
-        #Playerdata folder stores persistent player-specific settings between restarts
         - if <yaml.list.contains[sc_<player.uuid||null>].not>:
           - if <server.has_file[../Smellycraft/playerdata/<player.uuid||null>.yml]>:
             - ~yaml load:../Smellycraft/playerdata/<player.uuid||null>.yml id:sc_<player.uuid||null>
           - else:
             - ~yaml create id:sc_<player.uuid||null>
         on player quits:
-        #Save the player's persistent data to disk
         - if <yaml.list.contains[sc_<player.uuid>]>:
           - ~yaml savefile:../Smellycraft/playerdata/<player.uuid||null>.yml id:sc_<player.uuid>
           - yaml unload id:sc_<player.uuid>
-        #Destroy player's cached data on quit, in case they rejoin prior to next restart
         - yaml set <player.uuid>:! id:sc_pcache
         on shutdown:
         - if <yaml.list.contains[sc_common]||false>:
@@ -246,7 +241,6 @@ sc_common_defaults:
       args_m: '&cMissing arguments: [args]'
       args_i: '&cInvalid arguments: [args]'
       boolean: '&cPlease specify true or false.'
-      reload: '&9Plugin has been reloaded.'
       disabled: '&cPlugin is currently disabled.'
     update:
       failed:
@@ -258,3 +252,19 @@ sc_common_defaults:
       disabled: '&cUpdates disabled.'
       disabled-no: '&9Updates are already disabled.'
       specify: '&cPlease specify enable or disable.'
+#This tree exposes the layout of all commands and arguments with suitable permissions
+sc_common_args:
+  type: yaml data
+  smellycraft:
+    reload: admin
+    update: admin
+    set:
+      feedback:
+        chat:
+        - admin
+        - chatperm
+        actionbar: admin
+        custom: admin
+      update:
+        true: admin
+        false: admin
