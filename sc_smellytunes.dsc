@@ -1,19 +1,6 @@
-###########################################
-# Made by Smellyonionman for Smellycraft. #
-#          onion@smellycraft.com          #
-#    Tested on Denizen-1.1.2-b4492-DEV    #
-#               Version 0.9               #
-#-----------------------------------------#
-#     Updates and notes are found at:     #
-#  https://d.smellycraft.com/smellytunes  #
-#-----------------------------------------#
-#    You may use, modify or share this    #
-#    script, provided you don't remove    #
-#    or alter lines 1-13 of this file.    #
-###########################################
 sc_tu_init:
     type: task
-    debug: false
+    debug: true
     script:
     - define namespace:sc_tu
     - define admin:<yaml[sc_tu].read[permissions.admin]||<script[sc_tu_defaults].yaml_key[permissions.admin]||smellytunes.admin>>
@@ -24,7 +11,7 @@ sc_tu_init:
       - ~yaml create id:sc_tu
       - ~yaml loadtext:<script[sc_tu_defaults].to_json> id:sc_tu
       - ~yaml savefile:../Smellycraft/smellytunes.yml id:sc_tu
-      - yaml set version:0.9 id:sc_tu
+      - yaml set version:1.0 id:sc_tu
     - if <server.has_file[../Smellycraft/data/jukeboxes.yml]>:
       - ~yaml load:../Smellycraft/data/jukeboxes.yml id:sc_tu_jb
       - foreach <yaml[sc_tu_jb].list_keys[]> as:jukebox:
@@ -100,11 +87,12 @@ sc_tu_listener:
           - if <yaml[sc_tu].read[settings.enabled].not||false>:
             - stop
           - determine passively cancelled
-          - if <player.has_permission[<yaml[sc_tu].read[permissions.use]||<script[sc_tu_defaults].yaml_key[permissions.use]||smellytunes.use>>]>:
+          - define use:<yaml[sc_tu].read[permissions.use]||<script[sc_tu_defaults].yaml_key[permissions.use]||smellytunes.use>>
+          - if <player.has_permission[<[use]>]> || <player.is_op>:
             - define max:<yaml[sc_tu].read[settings.max]||3>
             - define playing:<yaml[sc_cache].read[sc_tu.playing]||0>
             - define bypass:<yaml[sc_tu].read[permissions.bypass]||<script[sc_tu_defaults].yaml_key[permissions.bypass]||smellytunes.bypass>>
-            - if <[playing].is[LESS].than[<[max]>]||true> || <player.has_permission[<[bypass]>]>:
+            - if <[playing].is[LESS].than[<[max]>]||true> || <player.has_permission[<[bypass]>]> || <player.is_op>:
               - define redstone:<yaml[sc_tu].read[settings.redstone]||<script[sc_tu_defaults].yaml_key[settings.redstone]||false>>
               - if <[redstone].not.or[<context.location.power.is[MORE].than[0]>]>:
                 - if <player.gamemode.id.is[==].to[0]>:
