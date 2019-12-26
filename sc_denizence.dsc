@@ -44,7 +44,7 @@ sc_dce_cmd:
     type: command
     debug: false
     name: denizence
-    description: <yaml[sc_dce].read[messages.description]||<script[sc_dce_defaults].yaml_key[messages.description]>>
+    description: <yaml[sc_dce].read[messages.description]||GUI for Residence Users>
     usage: /denizence
     aliases:
     - resmenu
