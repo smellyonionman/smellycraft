@@ -1,11 +1,11 @@
 ###########################################
 # Made by Smellyonionman for Smellycraft. #
 #          onion@smellycraft.com          #
-#    Tested on Denizen-1.1.1-b4492-DEV    #
-#              Version 0.9.1              #
+#    Tested on Denizen-1.1.2-b4492-DEV    #
+#               Version 1.1               #
 #-----------------------------------------#
 #     Updates and notes are found at:     #
-#  https://d.smellycraft.com/smellytunes  #
+#  https://smellycraft.com/d/smellytunes  #
 #-----------------------------------------#
 #    You may use, modify or share this    #
 #    script, provided you don't remove    #
@@ -24,7 +24,7 @@ sc_tu_init:
       - ~yaml create id:sc_tu
       - ~yaml loadtext:<script[sc_tu_defaults].to_json> id:sc_tu
       - ~yaml savefile:../Smellycraft/smellytunes.yml id:sc_tu
-      - yaml set version:0.9.1 id:sc_tu
+      - yaml set version:1.1 id:sc_tu
     - if <server.has_file[../Smellycraft/data/jukeboxes.yml]>:
       - ~yaml load:../Smellycraft/data/jukeboxes.yml id:sc_tu_jb
       - foreach <yaml[sc_tu_jb].list_keys[]> as:jukebox:
@@ -43,18 +43,9 @@ sc_tu_cmd:
     - define namespace:sc_tu
     - if <context.args.size.is[MORE].than[0]||false>:
       - define admin:<yaml[sc_tu].read[permissions.admin]||<script[sc_tu_defauls].yaml_key[permissions.admin]||smellytunes.admin>>
-      - if <context.args.get[1].to_lowercase.matches[reload]||false>:
-        - if <player.has_permission[<[admin]>]||false> || <player.is_op||false> || <context.server>:
-          - inject <script[sc_tu_init]>
-          - stop
-        - else:
-          - define feedback:<yaml[sc_tu].read[messages.permission]||<script[sc_tu_defaults].yaml_key[messages.permission]||&cError>>
-      - if <context.args.get[1].to_lowercase.matches[update]||false>:
-        - if <player.has_permission[<[admin]>]||false> || <player.is_op||false> || <context.server>:
-          - inject <script[<yaml[sc_tu].read[scripts.updater]||<script[sc_tu_defaults].yaml_key[scripts.updater]||sc_common_update>>]>
-          - stop
-        - else:
-          - define feedback:<yaml[sc_tu].read[messages.permission]||<script[sc_tu_defaults].yaml_key[messages.permission]||&cError>>
+      - if <context.args.get[1].to_lowercase.matches[(save|update|reload)]||false>:
+        - define filename:smellytunes.yml
+        - inject <script[sc_common_datacmd]>
       - else if <context.args.get[1].to_lowercase.matches[credits]||false>:
         - define feedback:&9made&spby&spyour&spfriend&sp&6smellyonionman&9!&nl&9Go&spto&sp&ahttps&co//smellycraft.com/smellytunes&sp&9for&spinfo.
       - else if <context.args.get[1].to_lowercase.matches[disable]||false>:
@@ -91,8 +82,10 @@ sc_tu_listener:
         - yaml unload id:sc_tu_jb
         on delta time hourly:
         - define namespace:sc_tu
+        - define filename:smellytunes.yml
+        - inject <script[sc_common_save]>
         - if <yaml[sc_tu].read[settings.update].to_lowercase.matches[true|enabled]||false>:
-          - inject <script[<yaml[sc_tu].read[scripts.updater]||<script[sc_tu_defaults].yaml_key[scripts.updater]||sc_common_updater>>]>
+          - inject <script[<yaml[sc_tu].read[scripts.update]||<script[sc_tu_defaults].yaml_key[scripts.update]||sc_common_update>>]>
         on player right clicks jukebox:
         - define namespace:sc_tu
         - inject <script[sc_tu_eject]>
@@ -163,7 +156,7 @@ sc_tu_defaults:
   scripts:
     narrator: sc_common_feedback
     GUI: sc_common_marquee
-    updater: sc_common_update
+    update: sc_common_update
   messages:
     prefix: '&9[&aSmelly&2Tunes&9]'
     permission: '&cYou don''t have permission.'
@@ -173,7 +166,7 @@ sc_tu_defaults:
     playing: '&9Now playing:'
     playcount: '&cToo many songs playing.'
     nosignal: '&cRedstone signal required.'
-    enabled: '&9Plugin has been &cenabled&9.'
+    enabled: '&9Plugin has been &aenabled&9.'
     disabled: '&9Plugin has been &cdisabled&9.'
     titlecolor: &a
     lorecolor: &9
