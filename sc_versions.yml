@@ -1,7 +1,7 @@
 plugins:
   sc_dm:
     version: 1.0
-    description: 'Crowd-sourceable prank caster, with scheduler support for April Fool's Day.'
+    description: 'Crowd-sourceable prank caster, with scheduler support for April Fool''s Day.'
     url: https://smellycraft.com/denizen/dmoralizer
     deps: []
   sc_dce:
