@@ -2,10 +2,10 @@
 # Made by Smellyonionman for Smellycraft. #
 #          onion@smellycraft.com          #
 #    Tested on Denizen-1.1.1-b4492-DEV    #
-#               Version 1.0               #
+#               Version 1.1               #
 #-----------------------------------------#
 #     Updates and notes are found at:     #
-#   https://d.smellycraft.com/denizence   #
+#   https://smellycraft.com/d/denizence   #
 #-----------------------------------------#
 #    You may use, modify or share this    #
 #    script, provided you don't remove    #
@@ -17,8 +17,9 @@ sc_dce_init:
     type: task
     debug: false
     script:
+    - define namespace:sc_dce
     - define targets:<server.list_online_players.filter[has_permission[residence.admin]]||<player>>
-    - if <server.has_file[../Smellycraft/denizence.yml]||null>:
+    - if <server.has_file[../Smellycraft/denizence.yml]||false>:
       - ~yaml load:../Smellycraft/denizence.yml id:sc_dce
     - else:
       - ~yaml create id:sc_dce
@@ -37,7 +38,7 @@ sc_dce_init:
       - yaml set gui.current.material.create:<yaml[sc_dce_resconf].read[Global.SelectionToolId]||wooden_axe> id:sc_dce
       - ~yaml unload id:sc_dce_resconf
       - ~yaml savefile:../Smellycraft/denizence.yml id:sc_dce
-      - yaml set version:1.0 id:sc_dce
+      - yaml set version:1.1 id:sc_dce
       - define feedback:<yaml[sc_dce].read[messages.reload]||<script[sc_dce_defaults].yaml_key[messages.reload]||&cError>>
     - inject <script[<yaml[sc_dce].read[scripts.narrator]||<script[sc_dce_defaults].yaml_key[scripts.narrator]>>]>
 sc_dce_cmd:
@@ -46,28 +47,25 @@ sc_dce_cmd:
     name: denizence
     description: <yaml[sc_dce].read[messages.description]||GUI for Residence Users>
     usage: /denizence
-    aliases:
-    - resmenu
     script:
-    - if <context.args.size.is[==].to[0]||null>:
+    - define namespace:sc_dce
+    - define admin:<yaml[sc_dce].read[permissions.admin]||<script[sc_dce_defaults].yaml_key[permissions.admin]>>
+    - if <context.args.size.is[==].to[0]||false>:
+      - if <player.has_permission[<yaml[sc_dce].read[permissions.use]||<script[sc_dce_defaults].yaml_key[permissions.use]>>]>:
         - inventory open d:<inventory[sc_dce_menu]>
-    - else if <context.args.size.is[==].to[1]||null>:
-      - if <context.args.get[1].to_lowercase.matches[reload]||null>:
-        - if <player.has_permission[residence.admin]||null> || <player.is_op||null> || <context.server>:
-          - inject <script[sc_dce_init]>
-          - stop
-        - else:
-          - define feedback:<yaml[sc_dce].read[messages.permission]||<script[sc_dce].yaml_key[messages.permission]||&cError>>
-      - else if <context.args.get[1].to_lowercase.matches[credits]||null>:
+      - else:
+        - define feedback:<yaml[sc_common].read[messages.permission]||<script[sc_dce_defaults].yaml_key[messages.permission]&cError>>
+    - else:
+      - if <context.args.get[1].to_lowercase.matches[(save|update|reload)]||false>:
+        - define filename:denizence.yml
+        - inject <script[sc_common_datacmd]>
+      - else if <context.args.get[1].to_lowercase.matches[credits]||false>:
         - define feedback:'&2Denizence &9made by your friend &6smellyonionman&nl&9Go to &ahttps&co//smellycraft.com/denizence &9for info.'
-      - else if <context.args.get[1].to_lowercase.matches[update]||null>:
-        - if <player.has_permission[residence.admin]||null> || <player.is_op||null> || <context.server>:
-          - inject <script[<yaml[sc_dce].read[scripts.updater]||<script[sc_dce_defaults].yaml_key[scripts.updater]||sc_common_update>>]>
-          - stop
-        - else:
-          - define feedback:<yaml[sc_dce].read[messages.permission]||<script[sc_dce].yaml_key[messages.permission]||&cError>>
-      - if <[feedback].exists>:
-        - inject <script[<yaml[sc_dce].read[scripts.narrator]||<script[sc_dce_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
+      - if <context.args.size.is[MORE].than[1]>:
+        - define placeholder:<yaml[sc_common].read[messages.admin.args_i]||<script[sc_common_defaults].yaml_key[messages.admin.args_i]||&cError>>
+        - define feedback:<[placeholder].replace[[args]].with[<context.args.get[1]>
+    - if <[feedback].exists>:
+      - inject <script[<yaml[sc_dce].read[scripts.narrator]||<script[sc_dce_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
 sc_dce_menu:
     type: inventory
     debug: false
@@ -313,23 +311,32 @@ sc_dce_listener:
     debug: false
     events:
         on reload scripts:
-        - if <server.has_file[../Smellycraft/denizence.yml].not||null>:
+        - if <server.has_file[../Smellycraft/denizence.yml].not||false>:
           - inject <script[sc_dce_init]>
         on server start:
         - inject <script[sc_dce_init]>
         on delta time hourly:
         - define namespace:sc_dce
+        - define filename:denizence.yml
+        - inject <script[sc_common_save]>
         - if <yaml[sc_dce].read[settings.update].to_lowercase.matches[true|enabled]||false>:
-          - inject <script[<yaml[sc_dce].read[scripts.updater]||<script[sc_dce_defaults].yaml_key[scripts.updater]||sc_common_update>>]>
+          - inject <script[<yaml[sc_dce].read[scripts.update]||<script[sc_dce_defaults].yaml_key[scripts.update]||sc_common_update>>]>
         on shutdown:
         - ~yaml savefile:../Smellycraft/denizence.yml id:sc_dce
         - yaml unload id:sc_dce
+        on player opens sc_dce_menu:
+        - define namespace:sc_dce
+        - if <player.has_permission[<yaml[sc_dce].read[permissions.use]||<script[sc_dce_defaults].yaml_key[permissions.use]||residence.gui>>].not>:
+          - determine passively cancelled
+          - define feedback:<yaml[sc_common].read[messages.permission]||<script[sc_common].yaml_key[messages.permission]||&cError>>
+          - inject <script[<yaml[sc_dce].read[scripts.narrator]||<script[sc_dce_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
         on player drags in sc_dce_menu:
         - determine cancelled
         on player clicks in sc_dce_menu:
+        - define namespace:sc_dce
         - determine passively cancelled
         - define click:<context.item.nbt[click]||null>
-        - if <[click].matches[null]||null>:
+        - if <[click].matches[null]||false>:
           - stop
         - choose <context.item.nbt[click]>:
           - case "owned":
@@ -414,118 +421,121 @@ sc_dce_listener:
         - if <[feedback].exists>:
           - inject <script[<yaml[sc_dce].read[scripts.narrator]||<script[sc_dce_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
         on residence||res command:
-            - if <context.args.get[1].matches[menu]||null>:
+            - if <context.args.get[1].matches[menu]||false>:
               - determine passively cancelled
               - inventory open d:<inventory[sc_dce_menu]>
         on player chats flagged:sc_dce_input:
-        - if <player.has_flag[sc_dce_input]>:
-          - determine passively cancelled
-          - if <player.flag[sc_dce_input].matches[res_create_name]>:
-            - if <context.message.to_lowercase.matches[cancel]>:
-              - define title:<yaml[sc_dce].read[gui.marquee.cancel_res]||<script[sc_dce_defaults].yaml_key[gui.marquee.cancel_res]>>
-            - else:
-              - execute as_player "res create <context.message>"
-          - else if <player.flag[sc_dce_input].matches[res_subzone_name]>:
-            - if <context.message.to_lowercase.matches[cancel]>:
-              - define title:<yaml[sc_dce].read[gui.marquee.cancel_zone]||<script[sc_dce_defaults].yaml_key[gui.marquee.cancel_zone]>>
-            - else:
-              - execute as_player "res subzone <context.message>"
-          - else if <player.flag[sc_dce_input].matches[res_message_enter]>:
-            - if <context.message.to_lowercase.matches[cancel]>:
-              - define placeholder:<yaml[sc_dce].read[gui.marquee.cancel_message]||<script[sc_dce_defaults].yaml_key[gui.marquee.cancel_message]>>
-              - define title:<[placeholder].replace[[type]].swith[entry]>
-            - else if <context.message.to_lowercase.matches[]>:
-              - execute as_player "res message enter remove"
-            - else:
-              - execute as_player <element[res&spmessage&spenter&sp<context.message.escaped>].unescaped>
-          - else if <player.flag[sc_dce_input].matches[res_message_leave]>:
-            - if <context.message.to_lowercase.matches[cancel]>:
-              - define placeholder:<yaml[sc_dce].read[gui.marquee.cancel_message]||<script[sc_dce_defaults].yaml_key[gui.marquee.cancel_message]>>
-              - define title:<[placeholder].replace[[type]].with[entry]>
-            - else if <context.message.to_lowercase.matches[]>:
-              - execute as_player "res message enter remove"
-            - else:
-              - execute as_player "res message leave <context.message>"
-          - else if <player.flag[sc_dce_input].matches[res_player_flags]>:
-            - if <context.message.to_lowercase.matches[cancel]>:
-              - define title:<yaml[sc_dce].read[gui.marquee.cancel_player]||<script[sc_dce_defaults].yaml_key[gui.marquee.cancel_player]>>
-            - else:
-              - execute as_player "res pset <placeholder[residence_user_current_res]> <context.message>"
-              - flag player sc_dce_input:!
-              - stop
-          - else if <player.flag[sc_dce_input].get[1].matches[res_market_rent]>:
-            - if <context.message.to_lowercase.matches[cancel]>:
-              - define title:<yaml[sc_dce].read[gui.marquee.cancel_list]||<script[sc_dce_defaults].yaml_key[gui.marquee.cancel_list]>>
-              - flag player sc_dce_input:!
-            - else if <player.flag[sc_dce_input].size.is[==].to[1]>:
-              - if <context.message.to_lowercase.matches[[0-9]*]>:
-                - flag player sc_dce_input:->:<context.message>
-                - define placeholder:<yaml[sc_dce].read[messages.enter_term]||<script[sc_dce_defaults].yaml_key[messages.enter_term]>>
-                - define feedback:<[placeholder].replace[[price]].with[<server.economy.format[<context.message>]>]>
-              - else:
-                - define feedback:<yaml[sc_dce].read[messages.numbers_only]||<script[sc_dce_defaults].yaml_key[messages.numbers_only]>>
-            - else if <player.flag[sc_dce_input].size.is[==].to[2]>:
-              - if <context.message.to_lowercase.matches[[0-9]*]>:
-                - flag player sc_dce_input:->:<context.message>
-                - define placeholder:<yaml[sc_dce].read[messages.allow_renew]||<script[sc_dce_defaults].yaml_key[messages.allow_renew]>>
-                - define feedback:<[placeholder].replace[[days]].with[<context.message>]>
-              - else:
-                - define feedback:<yaml[sc_dce].read[messages.numbers_only]||<script[sc_dce_defaults].yaml_key[messages.numbers_only]>>
-            - else if <player.flag[sc_dce_input].size.is[==].to[3]>:
-              - if <context.message.to_lowercase.matches[[y]]>:
-                - flag player sc_dce_input:->:true
-                - define placeholder:<yaml[sc_dce].read[messages.stay_rentable]||<script[sc_dce_defaults].yaml_key[messages.stay_rentable]>>
-                - define feedback:<[placeholder].replace[[renewable]].with[&aAllowed]>
-              - else if <context.message.to_lowercase.matches[[n]]>:
-                - flag player sc_dce_input:->:false
-                - define placeholder:<yaml[sc_dce].read[messages.stay_rentable]||<script[sc_dce_defaults].yaml_key[messages.stay_rentable]>>
-                - define feedback:<[placeholder].replace[[renewable]].with[&cDenied]>
-              - else:
-                - define feedback:<yaml[sc_dce].read[messages.boolean_only]||<script[sc_dce_defaults].yaml_key[messages.boolean_only]>>
-            - else if <player.flag[sc_dce_input].size.is[==].to[4]>:
-              - if <context.message.to_lowercase.matches[[y]]>:
-                - flag player sc_dce_input:->:true
-                - define placeholder:<yaml[sc_dce].read[messages.autopay]||<script[sc_dce_defaults].yaml_key[messages.autopay]>>
-                - define feedback:<[placeholder].replace[[T/F]].with[&aTrue]>
-              - else if <context.message.to_lowercase.matches[[n]]>:
-                - flag player sc_dce_input:->:false
-                - define placeholder:<yaml[sc_dce].read[messages.autopay]||<script[sc_dce_defaults].yaml_key[messages.autopay]>>
-                - define feedback:<[placeholder].replace[[T/F]].with[&cFalse]>
-              - else:
-                - define feedback:<yaml[sc_dce].read[messages.boolean_only]||<script[sc_dce_defaults].yaml_key[messages.boolean_only]>>
-            - else if <player.flag[sc_dce_input].size.is[==].to[5]>:
-              - if <context.message.to_lowercase.matches[y]>:
-                - flag player sc_dce_input:->:true
-              - else if <context.message.to_lowercase.matches[n]>:
-                - flag player sc_dce_input:->:false
-              - else:
-                - define feeback:<yaml[sc_dce].read[messages.boolean_only]||<script[sc_dce_defaults].yaml_key[messages.boolean_only]>>
-                - inject <script[<yaml[sc_dce].read[scripts.narrator]||<script[sc_dce_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
-                - stop
-              - define area:<placeholder[residence_user_current_res]>
-              - define price:<player.flag[sc_dce_input].get[2]>
-              - define term:<player.flag[sc_dce_input].get[3]>
-              - define renew:<player.flag[sc_dce_input].get[4]>
-              - define stay:<player.flag[sc_dce_input].get[5]>
-              - define auto:<player.flag[sc_dce_input].get[6]>
-              - execute as_player "res market rentable <[area]> <[price]> <[term]> <[renew]> <[stay]> <[auto]>"
-              - flag player sc_dce_input:!
-          - if <player.has_flag[sc_dce_input]>:
-            - if <[feedback].exists>:
-              - inject <script[<yaml[sc_dce].read[scripts.narrator]||<script[sc_dce_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
+        - define namespace:sc_dce
+        - determine passively cancelled
+        - if <player.flag[sc_dce_input].matches[res_create_name]>:
+          - if <context.message.to_lowercase.matches[cancel]>:
+            - define title:<yaml[sc_dce].read[gui.marquee.cancel_res]||<script[sc_dce_defaults].yaml_key[gui.marquee.cancel_res]>>
           - else:
-            - define inv:<inventory[sc_dce_menu]>
-            - inventory open d:<[inv]>
-            - if <[marquee].exists>:
-              - inject <script[<yaml[sc_dce].read[scripts.GUI]||<script[sc_dce_defaults].yaml_key[scripts.GUI]||sc_common_marquee>>]>
+            - execute as_player "res create <context.message>"
+        - else if <player.flag[sc_dce_input].matches[res_subzone_name]>:
+          - if <context.message.to_lowercase.matches[cancel]>:
+            - define title:<yaml[sc_dce].read[gui.marquee.cancel_zone]||<script[sc_dce_defaults].yaml_key[gui.marquee.cancel_zone]>>
+          - else:
+            - execute as_player "res subzone <context.message>"
+        - else if <player.flag[sc_dce_input].matches[res_message_enter]>:
+          - if <context.message.to_lowercase.matches[cancel]>:
+            - define placeholder:<yaml[sc_dce].read[gui.marquee.cancel_message]||<script[sc_dce_defaults].yaml_key[gui.marquee.cancel_message]>>
+            - define title:<[placeholder].replace[[type]].swith[entry]>
+          - else if <context.message.to_lowercase.matches[]>:
+            - execute as_player "res message enter remove"
+          - else:
+            - execute as_player <element[res&spmessage&spenter&sp<context.message.escaped>].unescaped>
+        - else if <player.flag[sc_dce_input].matches[res_message_leave]>:
+          - if <context.message.to_lowercase.matches[cancel]>:
+            - define placeholder:<yaml[sc_dce].read[gui.marquee.cancel_message]||<script[sc_dce_defaults].yaml_key[gui.marquee.cancel_message]>>
+            - define title:<[placeholder].replace[[type]].with[entry]>
+          - else if <context.message.to_lowercase.matches[]>:
+            - execute as_player "res message enter remove"
+          - else:
+            - execute as_player "res message leave <context.message>"
+        - else if <player.flag[sc_dce_input].matches[res_player_flags]>:
+          - if <context.message.to_lowercase.matches[cancel]>:
+            - define title:<yaml[sc_dce].read[gui.marquee.cancel_player]||<script[sc_dce_defaults].yaml_key[gui.marquee.cancel_player]>>
+          - else:
+            - execute as_player "res pset <placeholder[residence_user_current_res]> <context.message>"
+            - flag player sc_dce_input:!
+            - stop
+        - else if <player.flag[sc_dce_input].get[1].matches[res_market_rent]>:
+          - if <context.message.to_lowercase.matches[cancel]>:
+            - define title:<yaml[sc_dce].read[gui.marquee.cancel_list]||<script[sc_dce_defaults].yaml_key[gui.marquee.cancel_list]>>
+            - flag player sc_dce_input:!
+          - else if <player.flag[sc_dce_input].size.is[==].to[1]>:
+            - if <context.message.to_lowercase.matches[[0-9]*]>:
+              - flag player sc_dce_input:->:<context.message>
+              - define placeholder:<yaml[sc_dce].read[messages.enter_term]||<script[sc_dce_defaults].yaml_key[messages.enter_term]>>
+              - define feedback:<[placeholder].replace[[price]].with[<server.economy.format[<context.message>]>]>
+            - else:
+              - define feedback:<yaml[sc_dce].read[messages.numbers_only]||<script[sc_dce_defaults].yaml_key[messages.numbers_only]>>
+          - else if <player.flag[sc_dce_input].size.is[==].to[2]>:
+            - if <context.message.to_lowercase.matches[[0-9]*]>:
+              - flag player sc_dce_input:->:<context.message>
+              - define placeholder:<yaml[sc_dce].read[messages.allow_renew]||<script[sc_dce_defaults].yaml_key[messages.allow_renew]>>
+              - define feedback:<[placeholder].replace[[days]].with[<context.message>]>
+            - else:
+              - define feedback:<yaml[sc_dce].read[messages.numbers_only]||<script[sc_dce_defaults].yaml_key[messages.numbers_only]>>
+          - else if <player.flag[sc_dce_input].size.is[==].to[3]>:
+            - if <context.message.to_lowercase.matches[[y]]>:
+              - flag player sc_dce_input:->:true
+              - define placeholder:<yaml[sc_dce].read[messages.stay_rentable]||<script[sc_dce_defaults].yaml_key[messages.stay_rentable]>>
+              - define feedback:<[placeholder].replace[[renewable]].with[&aAllowed]>
+            - else if <context.message.to_lowercase.matches[[n]]>:
+              - flag player sc_dce_input:->:false
+              - define placeholder:<yaml[sc_dce].read[messages.stay_rentable]||<script[sc_dce_defaults].yaml_key[messages.stay_rentable]>>
+              - define feedback:<[placeholder].replace[[renewable]].with[&cDenied]>
+            - else:
+              - define feedback:<yaml[sc_dce].read[messages.boolean_only]||<script[sc_dce_defaults].yaml_key[messages.boolean_only]>>
+          - else if <player.flag[sc_dce_input].size.is[==].to[4]>:
+            - if <context.message.to_lowercase.matches[[y]]>:
+              - flag player sc_dce_input:->:true
+              - define placeholder:<yaml[sc_dce].read[messages.autopay]||<script[sc_dce_defaults].yaml_key[messages.autopay]>>
+              - define feedback:<[placeholder].replace[[T/F]].with[&aTrue]>
+            - else if <context.message.to_lowercase.matches[[n]]>:
+              - flag player sc_dce_input:->:false
+              - define placeholder:<yaml[sc_dce].read[messages.autopay]||<script[sc_dce_defaults].yaml_key[messages.autopay]>>
+              - define feedback:<[placeholder].replace[[T/F]].with[&cFalse]>
+            - else:
+              - define feedback:<yaml[sc_dce].read[messages.boolean_only]||<script[sc_dce_defaults].yaml_key[messages.boolean_only]>>
+          - else if <player.flag[sc_dce_input].size.is[==].to[5]>:
+            - if <context.message.to_lowercase.matches[y]>:
+              - flag player sc_dce_input:->:true
+            - else if <context.message.to_lowercase.matches[n]>:
+              - flag player sc_dce_input:->:false
+            - else:
+              - define feeback:<yaml[sc_dce].read[messages.boolean_only]||<script[sc_dce_defaults].yaml_key[messages.boolean_only]>>
+              - inject <script[<yaml[sc_dce].read[scripts.narrator]||<script[sc_dce_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
+              - stop
+            - define area:<placeholder[residence_user_current_res]>
+            - define price:<player.flag[sc_dce_input].get[2]>
+            - define term:<player.flag[sc_dce_input].get[3]>
+            - define renew:<player.flag[sc_dce_input].get[4]>
+            - define stay:<player.flag[sc_dce_input].get[5]>
+            - define auto:<player.flag[sc_dce_input].get[6]>
+            - execute as_player "res market rentable <[area]> <[price]> <[term]> <[renew]> <[stay]> <[auto]>"
+            - flag player sc_dce_input:!
+        - if <player.has_flag[sc_dce_input]>:
+          - if <[feedback].exists>:
+            - inject <script[<yaml[sc_dce].read[scripts.narrator]||<script[sc_dce_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
+        - else:
+          - define inv:<inventory[sc_dce_menu]>
+          - inventory open d:<[inv]>
+          - if <[marquee].exists>:
+            - inject <script[<yaml[sc_dce].read[scripts.GUI]||<script[sc_dce_defaults].yaml_key[scripts.GUI]||sc_common_marquee>>]>
 sc_dce_defaults:
   type: yaml data
   settings:
     update: true
+  permissions:
+    use: residence.gui
+    admin: residence.admin
   scripts:
     narrator: sc_common_feedback
     GUI: sc_common_marquee
-    updater: sc_common_update
+    update: sc_common_update
   messages:
     prefix: '&a&lb&2Denizence&a&rb'
     description: 'GUI for Residence Users'
