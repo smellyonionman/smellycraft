@@ -2,10 +2,10 @@
 # Made by Smellyonionman for Smellycraft. #
 #          onion@smellycraft.com          #
 #    Tested on Denizen-1.1.2-b4492-DEV    #
-#               Version 1.0               #
+#               Version 1.1               #
 #-----------------------------------------#
 #     Updates and notes are found at:     #
-#   https://d.smellycraft.com/tabWorks    #
+#   https://smellycraft.com/d/tabWorks    #
 #-----------------------------------------#
 #    You may use, modify or share this    #
 #    script, provided you don't remove    #
@@ -16,10 +16,10 @@ sc_tw_init:
     debug: false
     script:
     - define namespace:sc_tw
-    - if <server.has_file[../Smellycraft/TabWorks.yml]||null>:
+    - if <server.has_file[../Smellycraft/tabworks.yml]||null>:
       - if <yaml.list.contains[sc_tw]||null>:
         - ~yaml unload id:sc_tw
-      - ~yaml load:../Smellycraft/TabWorks.yml id:sc_tw
+      - ~yaml load:../Smellycraft/tabworks.yml id:sc_tw
     - else:
       - ~yaml create id:sc_tw
       - define payload:<script[sc_tw_defaults].to_json||null>
@@ -28,13 +28,13 @@ sc_tw_init:
         - define payload:<entry[sc_raw].result>
       - ~yaml loadtext:<[payload]> id:sc_tw
       - yaml set type:! id:sc_tw
-    - foreach <yaml[sc_tw].list_keys[scripts]||<script[sc_tw_defaults].list_keys[scripts]||<list[narrate|GUI|updater]>>> as:task:
+    - foreach <yaml[sc_tw].list_keys[scripts]||<script[sc_tw_defaults].list_keys[scripts]||<list[narrate|GUI|update]>>> as:task:
       - if <server.object_is_valid[<script[<yaml[sc_tw].read[scripts.<[task]>]||<script[sc_tw_defaults].yaml_key[scripts.<[task]>]>>]>].not>:
         - define placeholder:<yaml[sc_tw].read[messages.missing_script]||<script[sc_tw_defaults].yaml_key[messages.missing_script]||&cError>>
         - narrate '<[placeholder].replace[[script]].with[<[task]>].separated_by[&sp].unescaped.parse_color>'
         - stop
     - ~yaml savefile:../Smellycraft/TabWorks.yml id:sc_tw
-    - yaml set version:1.0 id:sc_tw
+    - yaml set version:1.1 id:sc_tw
     - yaml set commands.open:! id:sc_tw
     - foreach <server.list_scripts.filter[relative_filename.matches[^scripts/tabs/.*$]]||<list[]>> as:yaml:
       - if <[yaml].list_keys[tabs].size.is[==].to[0]||false>:
@@ -63,52 +63,56 @@ sc_tw_cmd:
     usage: /tabworks
     script:
     - define namespace:sc_tw
-    - if <player.has_permission[<yaml[sc_tw].read[permissions.use]||<script[sc_tw_defaults].yaml_key[permissions.use]||tabworks.use>>].not>:
-      - stop
-    - if <context.args.size.is[==].to[0]||true>:
-      - yaml set <player.uuid>.sc_tw.selector:<yaml[sc_tw].read[settings.default]||<script[sc_tw_defaults].yaml_key[settings.default]||options>> id:sc_pcache
-      - yaml set <player.uuid>.sc_tw.index:1 id:sc_pcache
-      - inventory open d:<inventory[sc_tw_menu]>
-    - else:
-      - define selector:<context.args.get[2]||null>
-      - define tabs:!|:<yaml[sc_tw].list_keys[tabs]||<list[]>>
-      - if <context.args.size.is[==].to[1]||false>:
-        - if <context.args.get[1].to_lowercase.matches[reload]>:
-          - inject <script[sc_tw_init]>
-          - stop
-        - else if <context.args.get[1].to_lowercase.matches[open]>:
-          - define feedback:<yaml[sc_tw].read[messages.badmenu]||<script[sc_tw_defaults].yaml_key[messages.badmenu]||&cError>>
-        - else if <context.args.get[1].to_lowercase.matches[update]>:
-          - inject <script[<yaml[sc_tw].read[scripts.updater]||<script[sc_tw_defaults].yaml_key[scripts.updater]||sc_common_update>>]>
-          - stop
-        - else if <context.args.get[1].to_lowercase.matches[credits]>:
-        - define feedback:&9made&spby&spyour&spfriend&sp&6smellyonionman&9!&nl&9Go&spto&sp&ahttps&co//smellycraft.com/tabworks&sp&9for&spinfo.
-      - else if <context.args.size.is[==].to[2]>:
-        - if <context.args.get[2].to_lowercase.matches[open]>:
-          - if <[tabs].contains[<[selector]>]>:
-            - yaml set <player.uuid>.sc_tw.selector:<[selector]> id:sc_pcache
-          - else:
-            - define feedback:<yaml[sc_tw].read[messages.badmenu]||<script[sc_tw_defaults].yaml_key[messages.badmenu]||&cError>>
+    - define use:<yaml[sc_tw].read[permissions.use]||<script[sc_tw_defaults].yaml_key[permissions.use]||tabworks.use>>
+    - if <player.has_permission[<[use]>]||false> || <player.is_op||false> || <context.server>:
+      - define selector:<context.args.get[2]||<yaml[sc_tw].read[settings.default]||<script[sc_tw_defaults].yaml_key[settings.default]||options>>>
+      - if <context.server.not>:
+        - yaml set <player.uuid>.sc_tw.selector:<[selector]> id:sc_pcache
+        - yaml set <player.uuid>.sc_tw.index:1 id:sc_pcache
+      - if <context.args.size.is[==].to[0]||true>:
+        - inventory open d:<inventory[sc_tw_menu]>
       - else:
-        - define icon:<context.args.get[3]>
-        - if <[tabs].contains[<[selector]>]>:
-        - define perms:!|:<yaml[sc_tw].read[tabs.<[selector]>.items.<[icon]>.permissions]||<list[]>>
-        - if <player.has_permission[<yaml[sc_tw].read[permissions.admin]||<script[sc_tw_defaults].yaml_key[permissions.admin]||tabworks.admin>>]||true> && <player.is_op||true>:
-          - define ok:true
+        - define tabs:!|:<yaml[sc_tw].list_keys[tabs]||<list[]>>
+        - if <context.args.size.is[==].to[1]||false>:
+          - if <context.args.get[1].to_lowercase.matches[(save|update|reload)]||false>:
+            - define filename:denizence.yml
+            - inject <script[sc_common_datacmd]>
+          - else if <context.args.get[1].to_lowercase.matches[open]>:
+            - define feedback:<yaml[sc_tw].read[messages.badmenu]||<script[sc_tw_defaults].yaml_key[messages.badmenu]||&cError>>
+          - else if <context.args.get[1].to_lowercase.matches[credits]>:
+            - define feedback:<element[&aTab&2Works&sp&9made&spby&spyour&spfriend&sp&6smellyonionman&nl&9Go&spto&sp&ahttps://smellycraft.com/tabworks&sp&9for&spinfo].>
+          - else:
+            - define placeholder:<yaml[sc_common].read[messages.admin.args_i]||<script[sc_common_defaults].yaml_key[messages.admin.args_i]||&cError>>
+            - define feedback:<[placeholder].replace[[args]].with[<context.args.get[1]>]>
+        - else if <context.args.size.is[==].to[2]>:
+          - if <context.args.get[1].to_lowercase.matches[open]>:
+            - if <[tabs].contains[<[selector]>]||false>:
+              - inventory open d:<inventory[sc_tw_menu]>
+            - else:
+              - define feedback:<yaml[sc_tw].read[messages.badmenu]||<script[sc_tw_defaults].yaml_key[messages.badmenu]||&cError>>
+          - else:
+            - define placeholder:<yaml[sc_common].read[messages.admin.args_i]||<script[sc_common_defaults].yaml_key[messages.admin.args_i]||&cError>>
+            - define feedback:<[placeholder].replace[[args]].with[<context.args.get[1]>]>
         - else:
-          - define feedback:<yaml[sc_tw].read[messages.permission]||<script[sc_tw_defaults].yaml_key[messages.permission]||&cError>>
-          - foreach <[perms]>:
-            - if <player.has_permission[<[value]>]>:
-              - define ok:true
-              - define feedback:!
-              - foreach stop
-        - if <context.args.size.is[MORE].than[3]||false>:
-          - define placeholder:<yaml[sc_tw].read[messages.args_i]||<script[sc_tw_defaults].yaml_key[messages.args_i]||&cError>>
-          - define feedback:<[placeholder].replace[[args]].with[<context.args.remove[1|2|3].separated_by[, ]>]>
-        - if <[ok]||false>:
-          - define path:!|:tabs|<[selector]>|items|<[icon]>
-          - define keys:<yaml[sc_tw].list_keys[<[path].separated_by[.]>]>
-          - inject <script[sc_tw_execute]> path:<[path].separated_by[.]>.script
+          - if <context.args.get[1].to_lowercase.matches[open]>:
+            - define icon:<context.args.get[3]>
+            - if <[tabs].contains[<[selector]>]||false>:
+              - define perms:!|:<yaml[sc_tw].read[tabs.<[selector]>.items.<[icon]>.permissions]||<list[]>>
+              - foreach <[perms]>:
+                - if <player.has_permission[<[value]>]||false> || <player.has_permission[<[admin]>]> || <player.is_op||false>:
+                  - define ok:true
+                  - foreach stop
+              - if <[ok]||false>:
+                - if <context.args.size.is[MORE].than[3]||false>:
+                  - define placeholder:<yaml[sc_tw].read[messages.args_i]||<script[sc_tw_defaults].yaml_key[messages.args_i]||&cError>>
+                  - define feedback:<[placeholder].replace[[args]].with[<context.args.remove[1|2|3].separated_by[, ]>]>
+                - define path:!|:tabs|<[selector]>|items|<[icon]>
+                - define keys:<yaml[sc_tw].list_keys[<[path].separated_by[.]>]>
+                - inject <script[sc_tw_execute]> path:<[path].separated_by[.]>.script
+              - else:
+                - define feedback:<yaml[sc_tw].read[messages.permission]||<script[sc_tw_defaults].yaml_key[messages.permission]||&cError>>
+    - else:
+      - define feedback:<yaml[sc_tw].read[messages.permission]||<script[sc_tw_defaults].yaml_key[messages.permission]||&cError>>
       - if <[feedback].exists>:
         - inject <script[<yaml[sc_tw].read[scripts.narrator]||<script[sc_tw_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
 #TO DO: Add support for sub-menu items
@@ -144,7 +148,7 @@ sc_tw_menu:
     - if <[index].is[MORE].than[1]||false>:
       - define prev:<item[spectral_arrow].with[display_name=&aPrev&spPage;nbt=type/prev|data/<[index].sub[<[slots]>]>]>
     - else:
-      - define prev:<item[arrow].with[display_name=&7Prev&spPage;nbt=type/null|data/<[index]>]>
+      - define prev:<item[arrow].with[display_name=&7End&spof&splist;nbt=type/null|data/<[index]>]>
     - define icons:|:<[prev]>
     - define buttons:<yaml[sc_tw].list_keys[tabs].alphanumeric||<script[sc_tw_defaults].list_keys[tabs].alphanumeric||<list[]>>>
     - define active:<yaml[sc_pcache].read[<player.uuid>.sc_tw.selector]||<yaml[sc_tw].read[settings.default]||<script[sc_tw_defaults].yaml_key[setting.default]||options>>>
@@ -163,7 +167,7 @@ sc_tw_menu:
     - if <[items].size.is[MORE].than[<[index].add[<[slots]>]>]||false>:
       - define next:<item[spectral_arrow].with[display_name=&aNext&spPage;nbt=type/next|data/<[index].add[<[slots]>]>]>
     - else:
-      - define next:<item[arrow].with[display_name=&7Next&spPage;nbt=type/null|data/<[index]>]>
+      - define next:<item[arrow].with[display_name=&7End&spof&splist;nbt=type/null|data/<[index]>]>
     - define icons:|:<[next]>
     - determine <[icons].unescaped.parse_color>
 #TO DO: Read list position of subkeys and parse code execution in order specified
@@ -178,11 +182,13 @@ sc_tw_listener:
         - inject <script[sc_tw_init]>
         on shutdown:
         - yaml set tabs:! id:sc_tw
-        - yaml savefile:../Smellycraft/tabWorks.yml id:sc_tw
+        - yaml savefile:../Smellycraft/tabworks.yml id:sc_tw
         on delta time hourly:
         - define namespace:sc_tw
+        - define filename:tabworks.yml
+        - inject <script[sc_common_save]>
         - if <yaml[sc_tw].read[settings.update].to_lowercase.matches[true|enabled]||false>:
-          - inject <script[<yaml[sc_tw].read[scripts.updater]||<script[sc_tw_defaults].yaml_key[scripts.updater]||sc_common_updater>>]>
+          - inject <script[<yaml[sc_tw].read[scripts.update]||<script[sc_tw_defaults].yaml_key[scripts.update]||sc_common_update>>]>
         on player receives commands:
         - if <context.commands.contains_any[tabworks.firstrun|tabworks.firstran]>:
           - determine <context.commands.exclude[tabworks.firstrun|tabworks.firstran]>
@@ -234,24 +240,17 @@ sc_tw_execute:
 sc_tw_defaults:
   type: yaml data
   settings:
-    rows: 2
+    rows: 1
     divider: vine
     default: options
     update: true
   scripts:
     narrator: sc_common_feedback
     GUI: sc_common_marquee
-    updater: sc_common_update
+    update: sc_common_update
   permissions:
     admin: tabworks.admin
     use: tabworks.use
-  commands:
-    reload: admin
-    settings:
-      update: admin
-      rows: admin
-      divider: admin
-      default: admin
   messages:
     prefix: '&9[&2Tab&aWorks&9]'
     reload: '&9Plugin has been reloaded.'
