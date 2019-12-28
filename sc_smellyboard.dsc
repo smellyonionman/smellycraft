@@ -2,10 +2,10 @@
 # Made by Smellyonionman for Smellycraft. #
 #          onion@smellycraft.com          #
 #    Tested on Denizen-1.1.2-b4492-DEV    #
-#               Version 1.0               #
+#               Version 1.1               #
 #-----------------------------------------#
 #     Updates and notes are found at:     #
-#  https://d.smellycraft.com/smellyboard  #
+#  https://smellycraft.com/d/smellyboard  #
 #-----------------------------------------#
 #    You may use, modify or share this    #
 #    script, provided you don't remove    #
@@ -34,7 +34,7 @@ sc_sb_init:
         - narrate '<[placeholder].replace[[script]].with[<[task]>].separated_by[&sp].unescaped.parse_color>'
         - stop
     - ~yaml savefile:../Smellycraft/smellyboard.yml id:sc_sb
-    - yaml set version:1.0 id:sc_sb
+    - yaml set version:1.1 id:sc_sb
     - ~yaml create id:sc_sb_linetemp
     - ~yaml loadtext:<script[sc_sb_lines].to_json> id:sc_sb_linetemp
     - yaml set type:! id:sc_sb_linetemp
@@ -49,8 +49,6 @@ sc_sb_cmd:
     name: smellyboard
     description: <yaml[sc_sb].read[messages.description]||Interfaces with the Smellyboard plugin.>
     usage: /smellyboard ( reload | credits | update ( enable | disable ) | freq | max )
-    aliases:
-    - sidebar
     script:
     - define namespace:sc_sb
     - define admin:<yaml[sc_sb].read[permissions.admin]||<script[sc_sb_defaults].yaml_key[permissions.admin]||smellyboard.admin>>
@@ -60,35 +58,29 @@ sc_sb_cmd:
         - inventory open d:<inventory[sc_sb_menu]>
       - else:
         - define feedback:<yaml[sc_sb].read[messages.permission]||<script[sc_sb_defaults].yaml_key[messages.permission]||&cError>>
-    - else if <context.args.size.is[MORE].than[0]||false>:
-      - if <context.args.get[1].to_lowercase.matches[reload]||false>:
-        - if <player.has_permission[<[admin]>]||false> || <player.is_op||false> || <context.server>:
-          - inject <script[sc_sb_init]>
-          - stop
-        - else:
-          - define feedback:<yaml[sc_sb].read[messages.permission]||<script[sc_sb_defaults].yaml_key[messages.permission]||&cError>>
+    - else if <context.args.size.is[==].to[1]||false>:
+      - if <context.args.get[1].to_lowercase.matches[(save|update|reload)]||false>:
+        - define filename:smellyboard.yml
+        - inject <script[sc_common_datacmd]>
       - else if <context.args.get[1].to_lowercase.matches[credits]>:
         - define feedback:&9made&spby&spyour&spfriend&sp&6smellyonionman&nl&9Go&spto&sp&ahttps&co//smellycraft.com/smellyboard&sp&9for&spinfo
-      - else if <context.args.get[1].to_lowercase.matches[update]||false>:
+    - else if <context.args.size.is[==].to[2]||false>:
+      - if <context.args.get[1].to_lowercase.matches[update]||false>:
         - if <player.has_permission[<[admin]>]||false> || <player.is_op||false> || <context.server>:
-          - if <context.args.size.is[OR_MORE].than[2]||false>:
-            - if <context.args.get[2].to_lowercase.matches[enable]||false>:
-              - if <yaml[sc_sb].read[settings.update].matches[(true|enabled)]||false>:
-                - define feedback:<yaml[sc_sb].read[messages.update.enabled-no]||<script[sc_sb_defaults].yaml_key[messages.update.enabled-no]||&cError>>
-              - else:
-                - yaml set settings.update:true id:sc_sb
-                - define feedback:<yaml[sc_sb].read[messages.update.enabled]||<script[sc_sb_defaults].yaml_key[messages.update.enabled]||&cError>>
-            - else if <context.args.get[2].to_lowercase.matches[disable]||false>:
-              - if <yaml[sc_sb].read[settings.update].matches[(true|enabled)].not||false>:
-                - define feedback:<yaml[sc_sb].read[messages.update.disabled-no]||||<script[sc_sb_defaults].yaml_key[messages.update.disabled-no]||&cError>>>
-              - else:
-                - yaml set settings.update:false id:sc_sb
-                - define feedback:<yaml[sc_sb].read[messages.update.disabled]||<script[sc_sb_defaults].yaml_key[messages.update.disabled]||&cError>>
+          - if <context.args.get[2].to_lowercase.matches[enable]||false>:
+            - if <yaml[sc_sb].read[settings.update].matches[(true|enabled)]||false>:
+              - define feedback:<yaml[sc_sb].read[messages.update.enabled-no]||<script[sc_sb_defaults].yaml_key[messages.update.enabled-no]||&cError>>
             - else:
-              - define feedback:<yaml[sc_sb].read[messages.update.specify]||<script[sc_sb_defaults].yaml_key[messages.update.specify]||&cError>>
+              - yaml set settings.update:true id:sc_sb
+              - define feedback:<yaml[sc_sb].read[messages.update.enabled]||<script[sc_sb_defaults].yaml_key[messages.update.enabled]||&cError>>
+          - else if <context.args.get[2].to_lowercase.matches[disable]||false>:
+            - if <yaml[sc_sb].read[settings.update].matches[(true|enabled)].not||false>:
+              - define feedback:<yaml[sc_sb].read[messages.update.disabled-no]||||<script[sc_sb_defaults].yaml_key[messages.update.disabled-no]||&cError>>>
+            - else:
+              - yaml set settings.update:false id:sc_sb
+              - define feedback:<yaml[sc_sb].read[messages.update.disabled]||<script[sc_sb_defaults].yaml_key[messages.update.disabled]||&cError>>
           - else:
-            - inject <script[<yaml[sc_sb].read[scripts.updater]||<script[sc_sb_defaults].yaml_key[scripts.updater]||sc_common_updater>>]>
-            - stop
+            - define feedback:<yaml[sc_sb].read[messages.update.specify]||<script[sc_sb_defaults].yaml_key[messages.update.specify]||&cError>>
         - else:
           - define feedback:<yaml[sc_sb].read[messages.permission]||<script[sc_sb_defaults].yaml_key[messages.permission]||&cError>>
       - else if <context.args.get[1].to_lowercase.matches[(freq|max)]||false>:
@@ -100,6 +92,9 @@ sc_sb_cmd:
             - define feedback:<yaml[sc_sb].read[messages.update.numeric]||<script[sc_sb_defaults].yaml_key[messages.update.numeric]||&cError>>
         - else:
           - define feedback:<yaml[sc_sb].read[messages.permission]||<script[sc_sb_defaults].yaml_key[messages.permission]||&cError>>
+      - else:
+        - define placeholder:<yaml[sc_common].read[messages.admin.args_i]||<script[sc_common_defaults].yaml_key[messages.admin.args_i]||&cError>>
+        - define feedback:<[placeholder].replace[[args]].with[<context.args.get[1]>]>
     - if <[feedback].exists>:
       - inject <script[<yaml[sc_sb].read[scripts.narrator]||<script[sc_sb_defaults].yaml_key[scripts.narrator]||sc_common_narrator>>]>
 sc_sb_events:
@@ -120,8 +115,10 @@ sc_sb_events:
         - yaml set smellyboard.listener:false id:sc_<player.uuid>
         on delta time hourly:
         - define namespace:sc_sb
+        - define filename:smellyboard.yml
+        - inject <script[sc_common_save]>
         - if <yaml[sc_sb].read[settings.update].to_lowercase.matches[true|enabled]||false>:
-          - inject <script[<yaml[sc_sb].read[scripts.updater]||<script[sc_sb_defaults].yaml_key[scripts.updater]||sc_common_updater>>]>
+          - inject <script[<yaml[sc_sb].read[scripts.update]||<script[sc_sb_defaults].yaml_key[scripts.update]||sc_common_update>>]>
         on delta time secondly:
         - if <yaml.list.contains[sc_sb].not||true>:
           - stop
@@ -140,6 +137,7 @@ sc_sb_events:
         - determine cancelled
         on player clicks in sc_sb_menu:
         - determine passively cancelled
+        - define namespace:sc_sb
         - define type:<context.item.nbt[type]||null>
         - if <[type].matches[null]||false>:
           - stop
@@ -330,7 +328,7 @@ sc_sb_defaults:
   scripts:
     narrator: sc_common_feedback
     GUI: sc_common_marquee
-    updater: sc_common_update
+    update: sc_common_update
   lines:
     balance: true
     waypoint: true
