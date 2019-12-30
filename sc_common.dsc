@@ -2,7 +2,7 @@
 # Made by Smellyonionman for Smellycraft. #
 #          onion@smellycraft.com          #
 #    Tested on Denizen-1.1.2-b4492-DEV    #
-#               Version 1.1               #
+#               Version 1.2               #
 #-----------------------------------------#
 #     Updates and notes are found at:     #
 #     https://smellycraft.com/denizen     #
@@ -16,11 +16,13 @@ sc_common_init:
     debug: false
     script:
     - define namespace:sc_common
-    - define targets:!|:<server.list_online_players.filter[is_op]||null>
-    - if <server.has_file[../Smellycraft/common.yml]||false>:
+    - define admin:<yaml[sc_common].read[permissions.admin]||<script[sc_common_defaults].yaml_key[permissions.admin]||smellycraft.admin>>
+    - define targets:<server.list_online_players.filter[has_permission[<[admin]>]].include[<server.list_online_ops>].deduplicate||<player>>
+    - define filename:<script[sc_common_data].yaml_key[filename]>
+    - if <server.has_file[../Smellycraft/<[filename]>]||false>:
       - if <yaml.list.contains[sc_common]>:
         - ~yaml unload id:sc_common
-      - ~yaml load:../Smellycraft/common.yml id:sc_common
+      - ~yaml load:../Smellycraft/<[filename]> id:sc_common
     - else:
       - ~yaml create id:sc_common
       - define payload:<script[sc_common_defaults].to_json||null>
@@ -29,8 +31,7 @@ sc_common_init:
         - define payload:<entry[sc_raw].result>
       - ~yaml loadtext:<[payload]> id:sc_common
       - yaml set type:! id:sc_common
-      - ~yaml savefile:../Smellycraft/common.yml id:sc_common
-      - yaml set version:1.1 id:sc_common
+      - ~yaml savefile:../Smellycraft/<[filename]> id:sc_common
     - if <server.has_file[../Smellycraft/schedules.yml]||false>:
       - ~yaml load:../Smellycraft/schedules.yml id:sc_schedules
     - else:
@@ -52,15 +53,16 @@ sc_common_cmd:
     type: command
     debug: false
     name: smellycraft
-    description: <yaml[sc_common].read[messages.command.desc]||<script[sc_common_defaults].yaml_key[messages.command.desc]||Global settings for Smellycraft plugins.>>
+    description: <yaml[sc_common].read[messages.description]||Global settings for Smellycraft plugins.>
     usage: /smellycraft
     script:
     - define namespace:sc_common
     - define admin:<yaml[sc_common].read[permissions.admin]||script[sc_common_defaults].yaml_key[permissions.admin]||smellycraft.admin>>
     - if <context.args.size.is[==].to[1]||false>:
       - if <context.args.get[1].to_lowercase.matches[(save|update|reload)]||false>:
-        - define filename:common.yml
-        - inject <script[sc_common_datacmd]>
+        - if <player.has_permission[<[admin]>]||false> || <player.is_op||false> || <context.server>:
+          - define arg:<context.args.get[1]>
+          - inject <script[sc_common_datacmd]>
       - else if <context.args.get[1].to_lowercase.matches[set]||false>:
         - define placeholder:<yaml[sc_common].read[messages.admin.args_m]||<script[sc_common_defaults].yaml_key[messages.admin.args_m]||&cError>>
         - define feedback:<element[<[placeholder]>].replace[[args]].with[&ltsetting&gt&sp(&ltsubsetting&gt)&sp&ltstate&gt]>
@@ -106,18 +108,14 @@ sc_common_cmd:
 sc_common_datacmd:
     type: task
     debug: false
+    definitions: namespace
     script:
-    - if <player.has_permission[<[admin]>]||false> || <player.is_op||false> || <context.server>:
-      - inject <script[<yaml[sc_<[namespace]>].read[scripts.<context.args.get[1]>]||<script[<[namespace]>_defaults].yaml_key[scripts.<context.args.get[1]>]||sc_common_<tern[<context.args.get[1].to_lowercase.matches[reload]>].pass[init].fail[<context.args.get[1]>]>>>]>
+    - if <[arg].exists||false>:
+      - inject <script[<script[<[namespace]>_data].yaml_key[scripts.<[arg]>]>]>
       - stop
-    - else:
-      - define feedback:<yaml[<[namespace]>].read[messages.permission]||<script[sc_common_defaults].yaml_key[messages.permission]||&cError>>
-#####################################
-#  DEWEY DECIMAL VERSIONING SYSTEM  #
-#####################################
 sc_common_update:
     type: task
-    debug: true
+    debug: false
     definitions: namespace
     script:
     - ~webget https://smellycraft.com/denizen/update save:sc_versions headers:host/smellycraft.com:443|user-agent/smellycraft
@@ -126,7 +124,7 @@ sc_common_update:
       - define feedback:<yaml[sc_common].read[messages.update.failed]||<script[sc_common_defaults].yaml_key[messages.update.failed]>>
     - else:
       - ~yaml loadtext:<entry[sc_versions].result> id:sc_versions
-      - define local:!|:<yaml[<[namespace]>].read[version].split[.]||0>
+      - define local:!|:<script[<[namespace]>_data].yaml_key[version].split[.]||0>
       - define remote:!|:<yaml[sc_versions].read[plugins.<[namespace]>.version].split[.]||-1>
       - foreach <[local]||null>:
         - if <[value].is[LESS].than[<[remote].get[<[loop_index]>]>]>:
@@ -207,31 +205,38 @@ sc_common_listener:
         - yaml set <player.uuid>:! id:sc_pcache
         on shutdown:
         - define namespace:sc_common
-        - define filename:common.yml
         - inject <script[sc_common_save]>
         on delta time hourly:
         - define namespace:sc_common
-        - define filename:common.yml
         - inject <script[sc_common_save]>
         - if <yaml[sc_common].read[settings.update].to_lowercase.matches[true|enabled]||false>:
           - inject <script[<yaml[sc_common].read[scripts.update]||<script[sc_common_defaults].yaml_key[scripts.update]||sc_common_update>>]>
 sc_common_save:
     type: task
     debug: false
-    definitions: namespace|filename
+    definitions: namespace
     script:
-    - if <yaml.list.contains[<[namespace]>]||false>:
-      - yaml savefile:../Smellycraft/<[filename]> id:<[namespace]>
-    - if <[namespace].matches[sc_common]>:
-      - if <yaml.list.contains[sc_schedules]||false>:
-        - yaml savefile:../Smellycraft/schedules.yml id:sc_schedules
-      - foreach <server.list_online_players>:
-        - if <yaml.list.contains[sc_<[value].uuid>]>:
-          - ~yaml savefile:../Smellycraft/playerdata/<[value].uuid>.yml
-    - if <[feedback].exists>:
-      - define feedback:<yaml[sc_common].read[messages.admin.saved]||<script[sc_common].yaml_key[messages.admin.saved]||&cError>>
-      - inject <script[<yaml[<[namespace]>].read[scripts.narrator]||<script[<[namespace]>_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
-      - define feedback:!
+    - if <[namespace].exists||false>:
+      - if <yaml.list.contains[<[namespace]>]||false>:
+        - yaml savefile:../Smellycraft/<script[<[namespace]>_data].yaml_key[filename]> id:<[namespace]>
+      - if <[namespace].matches[sc_common]>:
+        - if <yaml.list.contains[sc_schedules]||false>:
+          - yaml savefile:../Smellycraft/schedules.yml id:sc_schedules
+        - foreach <server.list_online_players>:
+          - if <yaml.list.contains[sc_<[value].uuid>]>:
+            - ~yaml savefile:../Smellycraft/playerdata/<[value].uuid>.yml
+      - if <[feedback].exists>:
+        - define feedback:<yaml[sc_common].read[messages.admin.saved]||<script[sc_common].yaml_key[messages.admin.saved]||&cError>>
+        - inject <script[<yaml[<[namespace]>].read[scripts.narrator]||<script[<[namespace]>_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
+        - define feedback:!
+sc_common_data:
+    type: yaml data
+    version: 1.2
+    filename: common.yml
+    scripts:
+      reload: sc_common_init
+      save: sc_common_save
+      update: sc_common_update
 sc_common_defaults:
   type: yaml data
   settings:
@@ -241,12 +246,12 @@ sc_common_defaults:
   scripts:
     narrator: sc_common_feedback
     GUI: sc_common_marquee
-    update: sc_common_update
   permissions:
     admin: smellycraft.admin
   messages:
     prefix: '&9[&aSmellycraft&9]'
     permission: '&cYou don''t have permission.'
+    description: 'Global settings for Smellycraft plugins.'
     admin:
       saved: '&9Data was saved.'
       reload: '&9Common files have been reloaded.'
