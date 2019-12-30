@@ -2,7 +2,7 @@
 # Made by Smellyonionman for Smellycraft. #
 #          onion@smellycraft.com          #
 #    Tested on Denizen-1.1.2-b4492-DEV    #
-#               Version 1.1               #
+#               Version 1.2               #
 #-----------------------------------------#
 #     Updates and notes are found at:     #
 #   https://smellycraft.com/d/tabWorks    #
@@ -16,10 +16,13 @@ sc_tw_init:
     debug: false
     script:
     - define namespace:sc_tw
-    - if <server.has_file[../Smellycraft/tabworks.yml]||null>:
+    - define admin:<yaml[sc_tw].read[permissions.admin]||<script[sc_tw_defaults].yaml_key[permissions.admin]||tabworks.admin>>
+    - define targets:<server.list_online_players.filter[has_permission[<[admin]>]].include[<server.list_online_ops>].deduplicate||<player>>
+    - define filename:<script[sc_tw_data].yaml_key[filename]>
+    - if <server.has_file[../Smellycraft/<[filename]>]||null>:
       - if <yaml.list.contains[sc_tw]||null>:
         - ~yaml unload id:sc_tw
-      - ~yaml load:../Smellycraft/tabworks.yml id:sc_tw
+      - ~yaml load:../Smellycraft/<[filename]> id:sc_tw
     - else:
       - ~yaml create id:sc_tw
       - define payload:<script[sc_tw_defaults].to_json||null>
@@ -28,13 +31,16 @@ sc_tw_init:
         - define payload:<entry[sc_raw].result>
       - ~yaml loadtext:<[payload]> id:sc_tw
       - yaml set type:! id:sc_tw
+    - if <server.object_is_valid[<script[sc_common_init]>].not>:
+        - define msg:'<yaml[sc_tw].read[messages.missing_common]||<script[sc_tw_defaults].yaml_key[messages.missing_common]||&cError>>'
+        - narrate <[msg].unescaped.parse_color> targets:<[targets]>
+        - stop
     - foreach <yaml[sc_tw].list_keys[scripts]||<script[sc_tw_defaults].list_keys[scripts]||<list[narrate|GUI|update]>>> as:task:
       - if <server.object_is_valid[<script[<yaml[sc_tw].read[scripts.<[task]>]||<script[sc_tw_defaults].yaml_key[scripts.<[task]>]>>]>].not>:
         - define placeholder:<yaml[sc_tw].read[messages.missing_script]||<script[sc_tw_defaults].yaml_key[messages.missing_script]||&cError>>
-        - narrate '<[placeholder].replace[[script]].with[<[task]>].separated_by[&sp].unescaped.parse_color>'
+        - narrate '<[placeholder].replace[[script]].with[<[task]>].separated_by[&sp].unescaped.parse_color>' targets:<[targets]>
         - stop
-    - ~yaml savefile:../Smellycraft/TabWorks.yml id:sc_tw
-    - yaml set version:1.1 id:sc_tw
+    - ~yaml savefile:../Smellycraft/<[filename]> id:sc_tw
     - yaml set commands.open:! id:sc_tw
     - foreach <server.list_scripts.filter[relative_filename.matches[^scripts/tabs/.*$]]||<list[]>> as:yaml:
       - if <[yaml].list_keys[tabs].size.is[==].to[0]||false>:
@@ -47,23 +53,18 @@ sc_tw_init:
         - ~yaml set commands.open.<[value]>:use id:sc_tw
       - ~yaml unload id:sc_tw_tabtemp
     - define feedback:<yaml[sc_tw].read[messages.reload]||<script[sc_tw_defaults].yaml_key[messages.reload]||&cError>>
-    - if <context.server.not||false> && <player.has_permission[tabworks.firstrun]||false>:
-      - if <player.has_permission[tabworks.firstran].not>:
-        - define feedback:<yaml[sc_tw].read[messages.manual_perms]||<script[sc_tw_defaults].yaml_key[messages.manual_perms]||&cError>>
-        - permission remove tabworks.firstrun
-        - permission add tabworks.firstran
-    - define targets:!|:<server.list_online_players.filter[has_permission[<yaml[sc_tw].read[permissions.admin]||<script[sc_tw_defaults].yaml_key[permissions.admin]||tabworks.admin>>]]||null>
     - if <[feedback].exists>:
       - inject <script[<yaml[sc_tw].read[scripts.narrator]||<script[sc_tw_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
 sc_tw_cmd:
     type: command
     debug: false
     name: tabworks
-    description: <yaml[sc_tw].read[messages.description]||<script[sc_tw_defaults].yaml_key[messages.description]||&cError>>
+    description: <yaml[sc_tw].read[messages.description]||Multidimensional GUI fit for almost any purpose.>
     usage: /tabworks
     script:
     - define namespace:sc_tw
     - define use:<yaml[sc_tw].read[permissions.use]||<script[sc_tw_defaults].yaml_key[permissions.use]||tabworks.use>>
+    - define admin:<yaml[sc_tw].read[permissions.admin]||<script[sc_tw_defaults].yaml_key[permissions.admin]||tabworks.admin>>
     - if <player.has_permission[<[use]>]||false> || <player.is_op||false> || <context.server>:
       - define selector:<context.args.get[2]||<yaml[sc_tw].read[settings.default]||<script[sc_tw_defaults].yaml_key[settings.default]||options>>>
       - if <context.server.not>:
@@ -75,8 +76,9 @@ sc_tw_cmd:
         - define tabs:!|:<yaml[sc_tw].list_keys[tabs]||<list[]>>
         - if <context.args.size.is[==].to[1]||false>:
           - if <context.args.get[1].to_lowercase.matches[(save|update|reload)]||false>:
-            - define filename:denizence.yml
-            - inject <script[sc_common_datacmd]>
+            - if <player.has_permission[<[admin]>]||false> || <player.is_op||false> || <context.server>:
+              - define arg:<context.args.get[1]>
+              - inject <script[sc_common_datacmd]>
           - else if <context.args.get[1].to_lowercase.matches[open]>:
             - define feedback:<yaml[sc_tw].read[messages.badmenu]||<script[sc_tw_defaults].yaml_key[messages.badmenu]||&cError>>
           - else if <context.args.get[1].to_lowercase.matches[credits]>:
@@ -104,15 +106,15 @@ sc_tw_cmd:
                   - foreach stop
               - if <[ok]||false>:
                 - if <context.args.size.is[MORE].than[3]||false>:
-                  - define placeholder:<yaml[sc_tw].read[messages.args_i]||<script[sc_tw_defaults].yaml_key[messages.args_i]||&cError>>
+                  - define placeholder:<yaml[sc_common].read[messages.admin.args_i]||<script[sc_common_defaults].yaml_key[messages.admin.args_i]||&cError>>
                   - define feedback:<[placeholder].replace[[args]].with[<context.args.remove[1|2|3].separated_by[, ]>]>
                 - define path:!|:tabs|<[selector]>|items|<[icon]>
                 - define keys:<yaml[sc_tw].list_keys[<[path].separated_by[.]>]>
                 - inject <script[sc_tw_execute]> path:<[path].separated_by[.]>.script
               - else:
-                - define feedback:<yaml[sc_tw].read[messages.permission]||<script[sc_tw_defaults].yaml_key[messages.permission]||&cError>>
+                - define feedback:<yaml[sc_common].read[messages.permission]||<script[sc_common_defaults].yaml_key[messages.permission]||&cError>>
     - else:
-      - define feedback:<yaml[sc_tw].read[messages.permission]||<script[sc_tw_defaults].yaml_key[messages.permission]||&cError>>
+      - define feedback:<yaml[sc_common].read[messages.permission]||<script[sc_common_defaults].yaml_key[messages.permission]||&cError>>
       - if <[feedback].exists>:
         - inject <script[<yaml[sc_tw].read[scripts.narrator]||<script[sc_tw_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
 #TO DO: Add support for sub-menu items
@@ -181,14 +183,14 @@ sc_tw_listener:
         on server start priority:1:
         - inject <script[sc_tw_init]>
         on shutdown:
+        - define namespace:sc_tw
         - yaml set tabs:! id:sc_tw
-        - yaml savefile:../Smellycraft/tabworks.yml id:sc_tw
+        - inject <script[sc_common_save]>
         on delta time hourly:
         - define namespace:sc_tw
-        - define filename:tabworks.yml
         - inject <script[sc_common_save]>
         - if <yaml[sc_tw].read[settings.update].to_lowercase.matches[true|enabled]||false>:
-          - inject <script[<yaml[sc_tw].read[scripts.update]||<script[sc_tw_defaults].yaml_key[scripts.update]||sc_common_update>>]>
+          - inject <script[<script[sc_tw_data].yaml_key[scripts.update]||sc_common_update>]>
         on player receives commands:
         - if <context.commands.contains_any[tabworks.firstrun|tabworks.firstran]>:
           - determine <context.commands.exclude[tabworks.firstrun|tabworks.firstran]>
@@ -237,6 +239,14 @@ sc_tw_execute:
         - define feedback:<yaml[sc_tw].read[<[path].separated_by[.]>.message].parsed||&cError>
         - inject <script[<yaml[sc_tw].read[scripts.narrator]||<script[sc_tw_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
       - stop
+sc_tw_data:
+    type: yaml data
+    version: 1.2
+    filename: tabworks.yml
+    scripts:
+      reload: sc_tw_init
+      save: sc_common_save
+      update: sc_common_update
 sc_tw_defaults:
   type: yaml data
   settings:
@@ -247,22 +257,15 @@ sc_tw_defaults:
   scripts:
     narrator: sc_common_feedback
     GUI: sc_common_marquee
-    update: sc_common_update
   permissions:
     admin: tabworks.admin
     use: tabworks.use
   messages:
     prefix: '&9[&2Tab&aWorks&9]'
     reload: '&9Plugin has been reloaded.'
-    permission: '&cYou don''t have permission.'
+    description: 'Multidimensional GUI fit for almost any purpose.'
+    missing_common: '&This plugin uses code contained in sc_common.yml.  Visit https://smellycraft.com/d/common for the most recent version.'
+    missing_script: '&9 Script &a[script] &9was not detected. &c Installation not complete. &9An alternative is available in the Common Files.'
     args_i: '&9Unused arguments: &c[args]'
-    missing_script:
-    - '&c Script [script] was not detected.'
-    - '&c Installation not complete.'
-    - '&c Did you install the common files?'
     badmenu:
     - '&cPlease select a choice from the provided list'
-    manual_perms:
-    - '&9Plugin reloaded. &cWarning:'
-    - '&9Your permissions plugin treats &cnull &9as &ctrue.'
-    - '&9You must deny negative permissions &cexplicitly&9.'
