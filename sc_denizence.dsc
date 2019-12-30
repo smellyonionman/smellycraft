@@ -305,6 +305,7 @@ sc_dce_listener:
         - inject <script[sc_dce_init]>
         on delta time hourly:
         - define namespace:sc_dce
+        - define silent:true
         - inject <script[sc_common_save]>
         - if <yaml[sc_dce].read[settings.update].to_lowercase.matches[true|enabled]||false>:
           - inject <script[<yaml[sc_dce].read[scripts.update]||<script[sc_dce_defaults].yaml_key[scripts.update]||sc_common_update>>]>
