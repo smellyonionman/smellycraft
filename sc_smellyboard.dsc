@@ -5,267 +5,376 @@
 #               Version 1.2               #
 #-----------------------------------------#
 #     Updates and notes are found at:     #
-#   https://smellycraft.com/d/tabWorks    #
+#  https://smellycraft.com/d/smellyboard  #
 #-----------------------------------------#
 #    You may use, modify or share this    #
 #    script, provided you don't remove    #
 #    or alter lines 1-13 of this file.    #
 ###########################################
-sc_tw_init:
+sc_sb_init:
     type: task
     debug: false
     script:
-    - define namespace:sc_tw
-    - define admin:<yaml[sc_tw].read[permissions.admin]||<script[sc_tw_defaults].yaml_key[permissions.admin]||tabworks.admin>>
+    - define namespace:sc_sb
+    - define admin:<yaml[sc_sb].read[permissions.admin]||<script[sc_sb_defaults].yaml_key[permissions.admin]||smellyboard.admin>>
     - define targets:<server.list_online_players.filter[has_permission[<[admin]>]].include[<server.list_online_ops>].deduplicate||<player>>
-    - define filename:<script[sc_tw_data].yaml_key[filename]>
+    - define filename:<script[sc_sb_data].yaml_key[filename]>
     - if <server.has_file[../Smellycraft/<[filename]>]||null>:
-      - if <yaml.list.contains[sc_tw]||null>:
-        - ~yaml unload id:sc_tw
-      - ~yaml load:../Smellycraft/<[filename]> id:sc_tw
+      - if <yaml.list.contains[sc_sb]||null>:
+        - ~yaml unload id:sc_sb
+      - ~yaml load:../Smellycraft/<[filename]> id:sc_sb
     - else:
-      - ~yaml create id:sc_tw
-      - define payload:<script[sc_tw_defaults].to_json||null>
+      - ~yaml create id:sc_sb
+      - define payload:<script[sc_sb_defaults].to_json||null>
       - if <[payload].matches[null]>:
-        - ~webget https://raw.githubusercontent.com/smellyonionman/smellycraft/master/configs/TabWorks.yml save:sc_raw headers:host/smellycraft.com:443|user-agent/smellycraft
+        - ~webget https://raw.githubusercontent.com/smellyonionman/smellycraft/master/configs/smellyboard.yml save:sc_raw headers:host/smellycraft.com:443|user-agent/smellycraft
         - define payload:<entry[sc_raw].result>
-      - ~yaml loadtext:<[payload]> id:sc_tw
-      - yaml set type:! id:sc_tw
+      - ~yaml loadtext:<[payload]> id:sc_sb
+      - yaml set type:! id:sc_sb
     - if <server.object_is_valid[<script[sc_common_init]>].not>:
-        - define msg:'<yaml[sc_tw].read[messages.missing_common]||<script[sc_tw_defaults].yaml_key[messages.missing_common]||&cError>>'
+        - define msg:'<yaml[sc_sb].read[messages.missing_common]||<script[sc_sb_defaults].yaml_key[messages.missing_common]||&cError>>'
         - narrate <[msg].unescaped.parse_color> targets:<[targets]>
         - stop
-    - foreach <yaml[sc_tw].list_keys[scripts]||<script[sc_tw_defaults].list_keys[scripts]||<list[narrate|GUI|update]>>> as:task:
-      - if <server.object_is_valid[<script[<yaml[sc_tw].read[scripts.<[task]>]||<script[sc_tw_defaults].yaml_key[scripts.<[task]>]>>]>].not>:
-        - define placeholder:<yaml[sc_tw].read[messages.missing_script]||<script[sc_tw_defaults].yaml_key[messages.missing_script]||&cError>>
+    - foreach <yaml[sc_sb].list_keys[scripts]||<script[sc_sb_defaults].list_keys[scripts]||<list[]>>> as:task:
+      - if <server.object_is_valid[<script[<yaml[sc_sb].read[scripts.<[task]>]||<script[sc_sb_defaults].yaml_key[scripts.<[task]>]>>]>].not>:
+        - define placeholder:<yaml[sc_sb].read[messages.missing_script]||<script[sc_sb_defaults].yaml_key[messages.missing_script]||&cError>>
         - narrate '<[placeholder].replace[[script]].with[<[task]>].separated_by[&sp].unescaped.parse_color>' targets:<[targets]>
         - stop
-    - ~yaml savefile:../Smellycraft/<[filename]> id:sc_tw
-    - yaml set commands.open:! id:sc_tw
-    - foreach <server.list_scripts.filter[relative_filename.matches[^scripts/tabs/.*$]]||<list[]>> as:yaml:
-      - if <[yaml].list_keys[tabs].size.is[==].to[0]||false>:
-        - foreach next
-      - ~yaml create id:sc_tw_tabtemp
-      - ~yaml loadtext:<[yaml].to_json> id:sc_tw_tabtemp
-      - foreach <yaml[sc_tw_tabtemp].list_keys[tabs]>:
-        - ~yaml id:sc_tw_tabtemp copykey:tabs.<[value]> tabs.<[value]> to_id:sc_tw
-        - ~yaml set tabs.<[value]>.scriptname:<[yaml]> id:sc_tw
-        - ~yaml set commands.open.<[value]>:use id:sc_tw
-      - ~yaml unload id:sc_tw_tabtemp
-    - define feedback:<yaml[sc_tw].read[messages.reload]||<script[sc_tw_defaults].yaml_key[messages.reload]||&cError>>
-    - if <[feedback].exists>:
-      - inject <script[<yaml[sc_tw].read[scripts.narrator]||<script[sc_tw_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
-sc_tw_cmd:
+    - ~yaml savefile:../Smellycraft/<[filename]> id:sc_sb
+    - ~yaml create id:sc_sb_linetemp
+    - ~yaml loadtext:<script[sc_sb_lines].to_json> id:sc_sb_linetemp
+    - yaml set type:! id:sc_sb_linetemp
+    - foreach <yaml[sc_sb_linetemp].list_keys[]>:
+      - if <yaml[sc_sb].read[lines.<[value]>]||false>:
+        - yaml id:sc_sb_linetemp copykey:<[value]> custom.<[value]> to_id:sc_sb
+    - define feedback:<yaml[sc_sb].read[messages.reload]||<script[sc_sb_defaults].yaml_key[messages.reload]||&cError>>
+    - inject <script[<yaml[sc_sb].read[scripts.narrator]||<script[sc_sb_defaults].yaml_key[scripts.narrator]||sc_common_narrator>>]>
+sc_sb_cmd:
     type: command
     debug: false
-    name: tabworks
-    description: <yaml[sc_tw].read[messages.description]||Multidimensional GUI fit for almost any purpose.>
-    usage: /tabworks
+    name: smellyboard
+    description: <yaml[sc_sb].read[messages.description]||Interfaces with the Smellyboard plugin.>
+    usage: /smellyboard ( reload | credits | update ( enable | disable ) | freq | max )
     script:
-    - define namespace:sc_tw
-    - define use:<yaml[sc_tw].read[permissions.use]||<script[sc_tw_defaults].yaml_key[permissions.use]||tabworks.use>>
-    - define admin:<yaml[sc_tw].read[permissions.admin]||<script[sc_tw_defaults].yaml_key[permissions.admin]||tabworks.admin>>
-    - if <player.has_permission[<[use]>]||false> || <player.is_op||false> || <context.server>:
-      - define selector:<context.args.get[2]||<yaml[sc_tw].read[settings.default]||<script[sc_tw_defaults].yaml_key[settings.default]||options>>>
-      - if <context.server.not>:
-        - yaml set <player.uuid>.sc_tw.selector:<[selector]> id:sc_pcache
-        - yaml set <player.uuid>.sc_tw.index:1 id:sc_pcache
-      - if <context.args.size.is[==].to[0]||true>:
-        - inventory open d:<inventory[sc_tw_menu]>
+    - define namespace:sc_sb
+    - define admin:<yaml[sc_sb].read[permissions.admin]||<script[sc_sb_defaults].yaml_key[permissions.admin]||smellyboard.admin>>
+    - if <context.args.size.is[==].to[0]||false>:
+      - if <player.has_permission[<yaml[sc_sb].read[permissions.use]||<script[sc_sb_defaults].yaml_key[permissions.use]||smellyboard.use>>]>:
+        - yaml set <player.uuid>.sc_sb.index:1 id:sc_pcache
+        - inventory open d:<inventory[sc_sb_menu]>
       - else:
-        - define tabs:!|:<yaml[sc_tw].list_keys[tabs]||<list[]>>
-        - if <context.args.size.is[==].to[1]||false>:
-          - if <context.args.get[1].to_lowercase.matches[(save|update|reload)]||false>:
-            - if <player.has_permission[<[admin]>]||false> || <player.is_op||false> || <context.server>:
-              - define arg:<context.args.get[1]>
-              - inject <script[sc_common_datacmd]>
-          - else if <context.args.get[1].to_lowercase.matches[open]>:
-            - define feedback:<yaml[sc_tw].read[messages.badmenu]||<script[sc_tw_defaults].yaml_key[messages.badmenu]||&cError>>
-          - else if <context.args.get[1].to_lowercase.matches[credits]>:
-            - define feedback:<element[&aTab&2Works&sp&9made&spby&spyour&spfriend&sp&6smellyonionman&nl&9Go&spto&sp&ahttps://smellycraft.com/tabworks&sp&9for&spinfo].>
-          - else:
-            - define placeholder:<yaml[sc_common].read[messages.admin.args_i]||<script[sc_common_defaults].yaml_key[messages.admin.args_i]||&cError>>
-            - define feedback:<[placeholder].replace[[args]].with[<context.args.get[1]>]>
-        - else if <context.args.size.is[==].to[2]>:
-          - if <context.args.get[1].to_lowercase.matches[open]>:
-            - if <[tabs].contains[<[selector]>]||false>:
-              - inventory open d:<inventory[sc_tw_menu]>
+        - define feedback:<yaml[sc_common].read[messages.permission]||<script[sc_common_defaults].yaml_key[messages.permission]||&cError>>
+    - else if <context.args.size.is[==].to[1]||false>:
+      - if <context.args.get[1].to_lowercase.matches[(save|update|reload)]||false>:
+        - if <player.has_permission[<[admin]>]||false> || <player.is_op||false> || <context.server>:
+          - define arg:<context.args.get[1]>
+          - inject <script[sc_common_datacmd]>
+      - else if <context.args.get[1].to_lowercase.matches[credits]>:
+        - define feedback:&9made&spby&spyour&spfriend&sp&6smellyonionman&nl&9Go&spto&sp&ahttps&co//smellycraft.com/smellyboard&sp&9for&spinfo
+    - else if <context.args.size.is[==].to[2]||false>:
+      - if <context.args.get[1].to_lowercase.matches[update]||false>:
+        - if <player.has_permission[<[admin]>]||false> || <player.is_op||false> || <context.server>:
+          - if <context.args.get[2].to_lowercase.matches[enable]||false>:
+            - if <yaml[sc_sb].read[settings.update].matches[(true|enabled)]||false>:
+              - define feedback:<yaml[sc_sb].read[messages.update.enabled-no]||<script[sc_sb_defaults].yaml_key[messages.update.enabled-no]||&cError>>
             - else:
-              - define feedback:<yaml[sc_tw].read[messages.badmenu]||<script[sc_tw_defaults].yaml_key[messages.badmenu]||&cError>>
+              - yaml set settings.update:true id:sc_sb
+              - define feedback:<yaml[sc_sb].read[messages.update.enabled]||<script[sc_sb_defaults].yaml_key[messages.update.enabled]||&cError>>
+          - else if <context.args.get[2].to_lowercase.matches[disable]||false>:
+            - if <yaml[sc_sb].read[settings.update].matches[(true|enabled)].not||false>:
+              - define feedback:<yaml[sc_sb].read[messages.update.disabled-no]||||<script[sc_sb_defaults].yaml_key[messages.update.disabled-no]||&cError>>>
+            - else:
+              - yaml set settings.update:false id:sc_sb
+              - define feedback:<yaml[sc_sb].read[messages.update.disabled]||<script[sc_sb_defaults].yaml_key[messages.update.disabled]||&cError>>
           - else:
-            - define placeholder:<yaml[sc_common].read[messages.admin.args_i]||<script[sc_common_defaults].yaml_key[messages.admin.args_i]||&cError>>
-            - define feedback:<[placeholder].replace[[args]].with[<context.args.get[1]>]>
+            - define feedback:<yaml[sc_sb].read[messages.update.specify]||<script[sc_sb_defaults].yaml_key[messages.update.specify]||&cError>>
         - else:
-          - if <context.args.get[1].to_lowercase.matches[open]>:
-            - define icon:<context.args.get[3]>
-            - if <[tabs].contains[<[selector]>]||false>:
-              - define perms:!|:<yaml[sc_tw].read[tabs.<[selector]>.items.<[icon]>.permissions]||<list[]>>
-              - foreach <[perms]>:
-                - if <player.has_permission[<[value]>]||false> || <player.has_permission[<[admin]>]> || <player.is_op||false>:
-                  - define ok:true
-                  - foreach stop
-              - if <[ok]||false>:
-                - if <context.args.size.is[MORE].than[3]||false>:
-                  - define placeholder:<yaml[sc_common].read[messages.admin.args_i]||<script[sc_common_defaults].yaml_key[messages.admin.args_i]||&cError>>
-                  - define feedback:<[placeholder].replace[[args]].with[<context.args.remove[1|2|3].separated_by[, ]>]>
-                - define path:!|:tabs|<[selector]>|items|<[icon]>
-                - define keys:<yaml[sc_tw].list_keys[<[path].separated_by[.]>]>
-                - inject <script[sc_tw_execute]> path:<[path].separated_by[.]>.script
-              - else:
-                - define feedback:<yaml[sc_common].read[messages.permission]||<script[sc_common_defaults].yaml_key[messages.permission]||&cError>>
-    - else:
-      - define feedback:<yaml[sc_common].read[messages.permission]||<script[sc_common_defaults].yaml_key[messages.permission]||&cError>>
-      - if <[feedback].exists>:
-        - inject <script[<yaml[sc_tw].read[scripts.narrator]||<script[sc_tw_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
-#TO DO: Add support for sub-menu items
-#TO DO: Add support for line-break items
-sc_tw_menu:
-    type: inventory
-    debug: false
-    title: <yaml[sc_tw].read[tabs.<yaml[sc_pcache].read[<player.uuid>.sc_tw.selector]>.title].unescaped.parse_color||<&c>Error>
-    size: <element[<yaml[sc_tw].read[settings.rows]||<script[sc_tw_defaults].yaml_key[settings.rows]||2>>].add[2].mul[9].min[54].max[27]>
-    procedural items:
-    - define selector:<yaml[sc_pcache].read[<player.uuid>.sc_tw.selector]||<yaml[sc_tw].read[settings.default]||<script[sc_tw_defaults].yaml_key[settings.default]||options>>>
-    - define index:<yaml[sc_pcache].read[<player.uuid>.sc_tw.index]||1>
-    - define slots:<element[<yaml[sc_tw].read[settings.rows]||<script[sc_tw_defaults].yaml_key[settings.rows]||2>>].round_down.mul[9].min[36].max[9]>
-    - define items:<yaml[sc_tw].list_keys[tabs.<[selector]>.items].alphanumeric>
-    - define range:<[items].get[<[index]>].to[<[index].add[<[slots]>].sub[1]>]>
-    - foreach <[range]||<list[]>> as:node:
-      - define perms:!|:<yaml[sc_tw].read[tabs.<[selector]>.items.<[node]>.permissions]||<list[]>>
-      - foreach <[perms]>:
-        - if <player.has_permission[<[value]>]||false>:
-          - define material:<yaml[sc_tw].read[tabs.<[selector]>.items.<[node]>.icon]||air>
-          - define display:<yaml[sc_tw].read[tabs.<[selector]>.items.<[node]>.display].parsed||&cError>
-          - define lore:<yaml[sc_tw].read[tabs.<[selector]>.items.<[node]>.lore].parsed||<list[]>>
-          - define icon:<item[<[material]>].with[display_name=<[display]>;lore=<[lore]>;nbt=type/icon|data/<[node]>;flags=HIDE_ENCHANTS|HIDE_ATTRIBUTES]||<item[air]>>
-          - if <yaml[sc_tw].read[tabs.<[selector]>.items.<[node]>.glow].parsed||false>:
-            - adjust def:icon enchantments:protection,1
-          - define icons:|:<[icon]>
-          - foreach stop
-    - repeat <[slots].sub[<[range].size>]>:
-      - define icons:|:<item[air]>
-    - define divider:<yaml[sc_tw].read[settings.divider]||<script[sc_tw_defaults].yaml_key[settings.divider]||iron_bars>>
-    - repeat 9:
-      - define icons:|:<item[<[divider]>].with[display_name=&sp]>
-    - if <[index].is[MORE].than[1]||false>:
-      - define prev:<item[spectral_arrow].with[display_name=&aPrev&spPage;nbt=type/prev|data/<[index].sub[<[slots]>]>]>
-    - else:
-      - define prev:<item[arrow].with[display_name=&7End&spof&splist;nbt=type/null|data/<[index]>]>
-    - define icons:|:<[prev]>
-    - define buttons:<yaml[sc_tw].list_keys[tabs].alphanumeric||<script[sc_tw_defaults].list_keys[tabs].alphanumeric||<list[]>>>
-    - define active:<yaml[sc_pcache].read[<player.uuid>.sc_tw.selector]||<yaml[sc_tw].read[settings.default]||<script[sc_tw_defaults].yaml_key[setting.default]||options>>>
-    - define tabindex:<[buttons].find[<[active]>]||1>
-    - define offset:<[tabindex].min[<[buttons].size.sub[3]>].sub[<[buttons].size.min[4]>].max[0]>
-    - define buttons:!|:<[buttons].get[<[offset].add[1]||1>].to[<[offset].add[7]||7>]>
-    - foreach <[buttons]>:
-      - define icon:<yaml[sc_tw].read[tabs.<[value]>.icon]||barrier>
-      - define display:<yaml[sc_tw].read[tabs.<[value]>.display]||&cError>
-      - define lore:<yaml[sc_tw].read[tabs.<[value]>.lore]||<list[&cYour&sptabs&spare&spnot|&ccorrectly&spconfigured.].unescaped.parse_color>>
-      - define button:<item[<[icon]>].with[display_name=<[display]>;lore=<[lore]>;nbt=type/tab|data/<[value]>;flags=HIDE_ENCHANTS|HIDE_ATTRIBUTES|HIDE_POTION_EFFECTS]>
-      - if <[value].matches[<[active]>]||false>:
-        - adjust def:button enchantments:protection,1
-      - define tabs:|:<[button]>
-    - define icons:|:<[tabs].pad_right[7].with[<item[air]>]>
-    - if <[items].size.is[MORE].than[<[index].add[<[slots]>]>]||false>:
-      - define next:<item[spectral_arrow].with[display_name=&aNext&spPage;nbt=type/next|data/<[index].add[<[slots]>]>]>
-    - else:
-      - define next:<item[arrow].with[display_name=&7End&spof&splist;nbt=type/null|data/<[index]>]>
-    - define icons:|:<[next]>
-    - determine <[icons].unescaped.parse_color>
-#TO DO: Read list position of subkeys and parse code execution in order specified
-sc_tw_listener:
+          - define feedback:<yaml[sc_common].read[messages.permission]||<script[sc_common_defaults].yaml_key[messages.permission]||&cError>>
+      - else if <context.args.get[1].to_lowercase.matches[(freq|max)]||false>:
+        - if <player.has_permission[<[admin]>]||false> || <player.is_op||false> || <context.server>:
+          - if <context.args.get[2].is_decimal||false>:
+            - define val:<context.args.get[2].round_down.max[1]||3>
+            - yaml set settings.<context.args.get[1].to_lowercase>:<[val]||3> id:sc_sb
+          - else:
+            - define feedback:<yaml[sc_sb].read[messages.update.numeric]||<script[sc_sb_defaults].yaml_key[messages.update.numeric]||&cError>>
+        - else:
+          - define feedback:<yaml[sc_common].read[messages.permission]||<script[sc_common_defaults].yaml_key[messages.permission]||&cError>>
+      - else:
+        - define placeholder:<yaml[sc_common].read[messages.admin.args_i]||<script[sc_common_defaults].yaml_key[messages.admin.args_i]||&cError>>
+        - define feedback:<[placeholder].replace[[args]].with[<context.args.get[1]>]>
+    - if <[feedback].exists>:
+      - inject <script[<yaml[sc_sb].read[scripts.narrator]||<script[sc_sb_defaults].yaml_key[scripts.narrator]||sc_common_narrator>>]>
+sc_sb_events:
     type: world
     debug: false
     events:
         on reload scripts:
-        - if <server.has_file[../Smellycraft/TabWorks.yml].not>:
-          - inject <script[sc_tw_init]>
+        - if <server.has_file[../Smellycraft/smellyboard.yml].not||null>:
+          - inject <script[sc_sb_init]>
         on server start priority:1:
-        - inject <script[sc_tw_init]>
+        - inject <script[sc_sb_init]>
         on shutdown:
-        - define namespace:sc_tw
-        - yaml set tabs:! id:sc_tw
+        - define namespace:sc_sb
         - inject <script[sc_common_save]>
+        - yaml unload id:sc_sb
+        - foreach <yaml[sc_<player.uuid>].list_keys[smellyboard.lines]||null>:
+          - if <yaml[sc_sb].read[lines.<[value]>].matches[true|enabled]||null> foreach next
+            ~yaml set smellyboard.lines.<[value]>:! id:sc_<player.uuid>
+        - yaml set smellyboard.listener:false id:sc_<player.uuid>
         on delta time hourly:
-        - define namespace:sc_tw
+        - define namespace:sc_sb
         - inject <script[sc_common_save]>
-        - if <yaml[sc_tw].read[settings.update].to_lowercase.matches[true|enabled]||false>:
-          - inject <script[<script[sc_tw_data].yaml_key[scripts.update]||sc_common_update>]>
-        on player receives commands:
-        - if <context.commands.contains_any[tabworks.firstrun|tabworks.firstran]>:
-          - determine <context.commands.exclude[tabworks.firstrun|tabworks.firstran]>
-        on player clicks in sc_tw_menu:
+        - if <yaml[sc_sb].read[settings.update].to_lowercase.matches[true|enabled]||false>:
+          - inject <script[<yaml[sc_sb].read[scripts.update]||<script[sc_sb_defaults].yaml_key[scripts.update]||sc_common_update>>]>
+        on delta time secondly:
+        - if <yaml.list.contains[sc_sb].not||true>:
+          - stop
+        - if <util.date.time.second.mod[<yaml[sc_sb].read[settings.freq]||<script[sc_sb_defaults].yaml_key[settings.freq]||5>>].is[==].to[0]||false>:
+          - stop
+        - foreach <server.list_online_players> as:player:
+          - adjust <queue> linked_player:<[player]>
+          - if <yaml[sc_<player.uuid>].list_keys[smellyboard.lines].size.is[MORE].than[0]||null>:
+            - foreach <yaml[sc_<player.uuid>].list_keys[smellyboard.lines]> as:key:
+              - define var:<yaml[sc_<player.uuid>].read[smellyboard.lines.<[key]>]||false>
+              - define output:|:<yaml[sc_sb].read[custom.<[key]>.output].parsed||&cError>
+            - sidebar set title:<yaml[sc_sb].read[messages.title].unescaped.parse_color||<&7>Smellyboard> values:<[output].parse_color> players:<player>
+          - else:
+            - sidebar remove players:<player>
+        on player drags in sc_sb_menu:
+        - determine cancelled
+        on player clicks in sc_sb_menu:
         - determine passively cancelled
-        - define namespace:sc_tw
+        - define namespace:sc_sb
         - define type:<context.item.nbt[type]||null>
         - if <[type].matches[null]||false>:
           - stop
         - else if <[type].matches[prev|next]||null>:
           - define index:<context.item.nbt[data]>
-          - yaml set <player.uuid>.sc_tw.index:<[index]> id:sc_pcache
-        - else if <[type].matches[tab]||null>:
-          - yaml set <player.uuid>.sc_tw.index:1 id:sc_pcache
-          - yaml set <player.uuid>.sc_tw.selector:<context.item.nbt[data]> id:sc_pcache
-        - else:
-          - define selector:<yaml[sc_pcache].read[<player.uuid>.sc_tw.selector]||null>
-          - define path:!|:tabs|<[selector]>|items|<context.item.nbt[data]>
-          - define stay:<yaml[sc_tw].read[<[path].separated_by[.]>.stay]||true>
-          - define keys:<yaml[sc_tw].list_keys[<[path].separated_by[.]>]>
-          - inject <script[sc_tw_execute]>
-        - inventory open d:<inventory[sc_tw_menu]>
-        on player drags in sc_tw_menu:
-        - determine cancelled
-sc_tw_execute:
+          - yaml set <player.uuid>.sc_sb.index:<[index]> id:sc_pcache
+        - else if <[type].matches[line]||false>:
+          - define line:<context.item.nbt[data]>
+          - define enabled:<yaml[sc_<player.uuid>].list_keys[smellyboard.lines].contains[<[line]>]||false>
+          - if <yaml[sc_<player.uuid>].list_keys[smellyboard.lines].size.is[OR_MORE].than[<yaml[sc_sb].read[settings.max]>]||false>:
+            - if <[enabled].not>:
+              - define title:<yaml[sc_sb].read[messages.limit]||<script[sc_sb_defaults].yaml_key[settings.freq]||&cError>>
+              - inject <script[<yaml[sc_sb].read[scripts.GUI]||<script[sc_sb_defaults].yaml_key[scripts.GUI]||sc_common_marquee>>]>
+              - stop
+          - if <context.item.nbt[listener].matches[false].not||false>:
+            - if <[enabled].not||false>:
+              - yaml set smellyboard.listener:<[line]> id:sc_<player.uuid>
+              - inventory close d:<inventory[sc_sb_menu]>
+              - define placeholder:<yaml[sc_sb].read[messages.linename]||<script[sc_sb_defaults].yaml_key[messages.linename]||&cError>>
+              - define feedback:<[placeholder].replace[[line]].with[<[line]>]>
+              - inject <script[<yaml[sc_sb].read[scripts.narrator]||<script[sc_sb_defaults].yaml_key[scripts.narrator]||sc_common_narrator>>]>
+              - stop
+            - inject <script[sc_sb_toggle]>
+          - else:
+            - inject <script[sc_sb_toggle]>
+        - inventory open d:<inventory[sc_sb_menu]>
+        on player chats:
+        - define namespace:sc_sb
+        - if <yaml[sc_<player.uuid>].map_get[smellyboard.listener].matches[false].not||false>:
+          - determine passively cancelled
+          - if <context.message.to_lowercase.matches[cancel.*]>:
+            - define feedback:<yaml[sc_sb].read[messages.cancelled]||<script[sc_sb_defaults].yaml_key[messages.cancelled]||&cError>>
+            - inject <script[<yaml[sc_sb].read[scripts.narrator]||<script[sc_sb_defaults].yaml_key[scripts.narrator]||sc_common_narrator>>]>
+            - stop
+          - else:
+            - define line:<yaml[sc_<player.uuid>].read[smellyboard.listener]||null>
+            - define enabled:false
+            - define feedback:<element[&7Set to &o<context.message>.].unescaped.parse_color>
+            - define var:<context.message>
+          - if <[feedback].exists>:
+            - inject <script[<yaml[sc_sb].read[scripts.narrator]||<script[sc_sb_defaults].yaml_key[scripts.narrator]||sc_common_narrator>>]>
+          - inject <script[sc_sb_toggle]>
+          - yaml set smellyboard.listener:false id:sc_<player.uuid>
+sc_sb_toggle:
     type: task
     debug: false
-    definitions: keys|path
     script:
-    - if <[keys].contains[script]>:
-      - inject <script[<yaml[sc_tw].read[<[path].get[1|2].separated_by[.]>.scriptname]>]> path:<[path].separated_by[.]>.script
-    - if <[keys].contains[scommand]>:
-      - foreach <yaml[sc_tw].read[<[path].separated_by[.]>.scommand].replace[%p].with[<player.name>]>:
-        - execute as_server '<[value].parsed>'
-    - if <[keys].contains[pcommand]>:
-      - foreach <yaml[sc_tw].read[<[path].separated_by[.]>.pcommand]>:
-        - execute as_player '<[value].parsed>'
-    - if <yaml[sc_tw].read[<[path].separated_by[.]>.stay]||true>:
-      - inventory open d:<inventory[sc_tw_menu]>
-      - if <[keys].contains[message]>:
-        - define title:<yaml[sc_tw].read[<[path].separated_by[.]>.message].parsed||&cError>
-        - inject <script[<yaml[sc_tw].read[scripts.GUI]||<script[sc_tw_defaults].yaml_key[scripts.GUI]||sc_common_marquee>>]>
+    - if <[enabled]||false>:
+      - yaml set smellyboard.lines.<[line]>:! id:sc_<player.uuid||null>
     - else:
-      - inventory close
-      - if <[keys].contains[message]>:
-        - define feedback:<yaml[sc_tw].read[<[path].separated_by[.]>.message].parsed||&cError>
-        - inject <script[<yaml[sc_tw].read[scripts.narrator]||<script[sc_tw_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
-      - stop
-sc_tw_data:
+      - yaml set smellyboard.lines.<[line]>:<[var]||null> id:sc_<player.uuid||null>
+    - inventory open d:<inventory[sc_sb_menu]>
+sc_sb_menu:
+    type: inventory
+    debug: false
+    title: <yaml[sc_sb].read[messages.menu].unescaped.parse_color||<&c>Error>
+    size: 9
+    procedural items:
+    - define index:<yaml[sc_pcache].read[<player.uuid>.sc_sb.index]||1>
+    - if <[index].is[MORE].than[1]||false>:
+      - define prev:<item[spectral_arrow].with[display_name=&aPrev&spPage;nbt=type/prev|data/<[index].sub[7]>]>
+    - else:
+      - define prev:<item[arrow].with[display_name=&7End&spof&splist;nbt=type/null|data/<[index]>]>
+    - define icons:|:<[prev]>
+    - define items:<yaml[sc_sb].list_keys[custom].alphanumeric>
+    - define range:<[items].get[<[index]>].to[<[index].add[7].sub[1]>]>
+    - foreach <[range]||<list[]>> as:node:
+      - define perms:!|:<yaml[sc_sb].read[custom.<[node]>.permissions]||<list[]>>
+      - foreach <[perms]>:
+        - if <player.has_permission[<[value]>]||false>:
+          - define material:<yaml[sc_sb].read[custom.<[node]>.icon]||air>
+          - define display:<yaml[sc_sb].read[custom.<[node]>.display].parsed||&cError>
+          - define lore:<yaml[sc_sb].read[custom.<[node]>.lore].parsed||<list[]>>
+          - define listener:<yaml[sc_sb].read[custom.<[node]>.input]||false>
+          - define icon:<item[<[material]||barrier>].with[display_name=<[display]||&cError>;lore=<[lore]>;nbt=type/line|data/<[node]>|listener/<[listener]>;flags=HIDE_ATTRIBUTES|HIDE_ENCHANTS|HIDE_POTION_EFFECTS]>
+          - if <yaml[sc_<player.uuid>].list_keys[smellyboard.lines].contains[<[node]>]||null>:
+            - adjust def:icon lore:<[icon].lore.include[<yaml[sc_sb].read[messages.enabled]>]>
+            - adjust def:icon enchantments:<list[protection,1]>
+          - else:
+            - adjust def:icon lore:<[icon].lore.include[<yaml[sc_sb].read[messages.disabled]>]>
+          - define icons:|:<[icon]>
+          - foreach stop
+    - define icons:!|:<[icons].pad_right[8].with[<item[air]>]>
+    - if <[items].size.is[MORE].than[<[index].add[7]>]||false>:
+      - define next:<item[spectral_arrow].with[display_name=&aNext&spPage;nbt=type/next|data/<[index].add[7]>]>
+    - else:
+      - define next:<item[arrow].with[display_name=&7End&spof&splist;nbt=type/null|data/<[index]>]>
+    - define icons:|:<[next]>
+    - determine <[icons].unescaped.parse_color>
+sc_sb_lines:
+  type: yaml data
+  balance:
+    icon: emerald
+    display: '&aBalance'
+    permissions:
+    - group.players
+    lore:
+    - '&9Shows your current balance'
+    output: '&9Balance: &6<server.economy.format[<player.money.as_money>]||&cError>'
+  waypoint:
+    icon: compass
+    display: '&aWaypoint'
+    permissions:
+    - group.players
+    lore:
+    - '&9Distance in blocks from'
+    - '&9your current waypoint'
+    output: '&a<player.compass_target.distance[<player.location||null>].round_down||&c?> &9blocks to waypoint'
+  exhaustion:
+    icon: apple
+    display: '&aExhaustion'
+    permissions:
+    - group.players
+    lore:
+    - '&9How quickly you are tiring'
+    output: '&9Exhaustion: &a<player.exhaustion.round_to[1]||&c?>'
+  lag:
+    icon: observer
+    display: '&aLagometer'
+    permissions:
+    - group.players
+    lore:
+    - '&9Displays your current ping'
+    - '&9as well as current TPS.'
+    output: '&9You: &a<player.ping||&c?>&9ms, Us: &a<server.recent_tps.get[1].round_to[2]||&c?> &9TPS'
+  mob:
+    icon: zombie_head
+    display: '&aMob Counter'
+    permissions:
+    - group.players
+    lore:
+    - '&9Useful for AFK mob farms.'
+    input: true
+    output: '&9<[var].to_titlecase||&cError> Counter: &a<player.location.cursor_on.find.entities[<[var]>].within[2].size||&c?>'
+  slime:
+    icon: slime_block
+    display: '&aSlime Chunks'
+    permissions:
+    - group.players
+    lore:
+    - '&9Indicates whether or not'
+    - '&9you are in a slime chunk'
+    output: '&9Slime Chunk: <tern[<player.location.chunk.spawn_slimes||false>].pass[&aTrue].fail[&cFalse]>'
+  power:
+    icon: repeater
+    display: '&aSignal Power'
+    permissions:
+    - group.players
+    lore:
+    - '&9Shows power of cursor block'
+    output: '&9Power: &a<player.location.cursor_on.power||&c?>'
+  damage:
+    icon: diamond_sword
+    display: '&aWeapon Damage'
+    permissions:
+    - group.players
+    lore:
+    - '&9Shows calculated weapon damage'
+    output: '&9Damage: <player.weapon_damage||&c?>'
+  item:
+    icon: hopper
+    display: '&aItem Counter'
+    permissions:
+    - group.players
+    lore:
+    - '&9Counts items in your inventory'
+    input: true
+    output: '&9<[var].as_item.material.name.to_titlecase||&cError>: &a<player.inventory.quantity[<[var]>]||&c?>'
+  debug:
+    icon: comparator
+    display: '&aDenizen Debugger'
+    permissions:
+    - group.admin
+    lore:
+    - '&9Indicates debugger status'
+    output: '&9Global Debug: <tern[<server.debug_enabled>].pass[&aEnabled].fail[&cDisabled]>'
+sc_sb_data:
     type: yaml data
     version: 1.2
-    filename: tabworks.yml
+    filename: smellyboard.yml
     scripts:
-      reload: sc_tw_init
+      reload: sc_sb_init
       save: sc_common_save
       update: sc_common_update
-sc_tw_defaults:
+sc_sb_defaults:
   type: yaml data
   settings:
-    rows: 1
-    divider: vine
-    default: options
+    enabled: true
     update: true
+    max: 3
+    freq: 5
+  permissions:
+    use: smellyboard.use
+    bypass: smellyboard.bypass
+    admin: smellyboard.admin
   scripts:
     narrator: sc_common_feedback
     GUI: sc_common_marquee
-  permissions:
-    admin: tabworks.admin
-    use: tabworks.use
+  lines:
+    balance: true
+    waypoint: true
+    exhaustion: true
+    lag: true
+    mob: true
+    slime: true
+    power: true
+    damage: true
+    item: true
+    debug: true
   messages:
-    prefix: '&9[&2Tab&aWorks&9]'
-    reload: '&9Plugin has been reloaded.'
-    description: 'Multidimensional GUI fit for almost any purpose.'
-    missing_common: '&This plugin uses code contained in sc_common.yml.  Visit https://smellycraft.com/d/common for the most recent version.'
+    prefix: '&9[&aSmelly&2Board&9]'
+    description: 'Interfaces with the Smellyboard plugin.'
+    reload: '&9Smellyboard reloaded.'
+    missing_common: '&This plugin uses code contained in sc_common.yml. Visit https://smellycraft.com/d/common for the most recent version.'
     missing_script: '&9 Script &a[script] &9was not detected. &c Installation not complete. &9An alternative is available in the Common Files.'
-    args_i: '&9Unused arguments: &c[args]'
-    badmenu:
-    - '&cPlease select a choice from the provided list'
+    limit: '&cToo many items active'
+    title: '&7&lSmellyboard'
+    menu: '           &0&lHUD Selector'
+    enabled: '&9Currently &aenabled'
+    disabled: '&9Currently &cdisabled'
+    linename: '&oEnter name of [line]&co'
+    cancelled: '&7Input cancelled. Display unaltered.'
+  custom:
+    job:
+      icon: iron_pickaxe
+      display: '&aJob Stats'
+      permissions:
+      - group.players
+      lore:
+      - '&9Displays current &alevel'
+      - '&9and &aXP &9for a given Job'
+      input: true
+      output: '&9<[var].to_titlecase||&cError>: &aLevel &6<player.jobs[<[var]>].xp.level||&c?>&a, &6<player.jobs[<[var]>].xp||&c?> &axp'
