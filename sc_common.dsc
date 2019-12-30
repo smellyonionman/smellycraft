@@ -55,31 +55,6 @@ sc_common_cmd:
     name: smellycraft
     description: <yaml[sc_common].read[messages.description]||Global settings for Smellycraft plugins.>
     usage: /smellycraft
-    tab complete:
-    - if <player.has_permission[<yaml[sc_common].read[permissions.admin]||<script[sc_common_defaults].yaml_key[permissions.admin]||smellycraft.admin>]> || <player.is_op||false> || <context.server>:
-      - define args1:!|:reload|update|set
-    - if <context.args.size.is[==].to[0]||false>:
-      - determine <[args1]||<list[]>>
-    - else if <context.args.size.is[==].to[1]>:
-      #If half a word, partial matches from tier 1
-      #If word complete, all from tier 2
-      - determine <[args1].filter[starts_with[<context.args.last>]]||<list[]>>
-    - else if <context.args.size.is[==].to[2]>:
-      - if <context.args.get[1].to_lowercase.matches[set]||false>:
-        - determine <list[update|feedback].filter[starts_with[<context.args.last>]]||<list[]>>
-    - else if <context.args.size.is[==].to[3]>:
-      - if <context.args.get[1].to_lowercase.matches[set]||false>:
-        - if <context.args.get[2].to_lowercase.matches[feedback]>:
-          - determine <list[mode|force].filter[starts_with[<context.args.last>]]||<list[]>>
-        - else if <context.args.get[2].to_lowercase.matches[update]>:
-          - determine <list[true|false].filter[starts_with[<context.args.last>]]||<list[]>>
-    - else if <context.args.size.is[==].to[4]>:
-      - if <context.args.get[1].to_lowercase.matches[set]||false>:
-        - if <context.args.get[2].to_lowercase.matches[feedback]>:
-          - if <context.args.get[3].to_lowercase.matches[mode]>:
-            - determine <list[chat|action].filter[starts_with[<context.args.last>]]||<list[]>>
-          - else if <context.args.get[3].to_lowercase.matches[force]>:
-            - determine <list[true|false].filter[starts_with[<context.args.last>]]||<list[]>>
     script:
     - define namespace:sc_common
     - define admin:<yaml[sc_common].read[permissions.admin]||script[sc_common_defaults].yaml_key[permissions.admin]||smellycraft.admin>>
@@ -141,7 +116,7 @@ sc_common_datacmd:
 sc_common_update:
     type: task
     debug: false
-    definitions: namespace
+    definitions: namespace|silent
     script:
     - if <[namespace].exists||false>:
       - ~webget https://smellycraft.com/denizen/update save:sc_versions headers:host/smellycraft.com:443|user-agent/smellycraft
@@ -161,10 +136,30 @@ sc_common_update:
         - if <[new]||false>:
           - define placeholder:<yaml[sc_common].read[messages.update.notice]||<script[sc_common_defaults].yaml_key[messages.update.notice]||&cError>>
           - define feedback:<[placeholder].replace[[version]].with[<[remote].separated_by[.]>].replace[[url]].with[<yaml[sc_versions].read[plugins.<[namespace]>.url]>]>
-      - if <[feedback].exists>:
+        - else:
+          - define feedback:<yaml[sc_common].read[messages.update.uptodate]||<script[sc_common_defaults].yaml_key[messages.update.uptodate]||&cError>>
+      - if <[feedback].exists> && <[silent].exists.not>:
         - inject <script[<yaml[sc_common].read[scripts.narrator]||<script[sc_common_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
       - if <yaml.list.contains[sc_versions]>:
         - ~yaml unload id:sc_versions
+sc_common_save:
+    type: task
+    debug: false
+    definitions: namespace
+    script:
+    - if <[namespace].exists||false>:
+      - if <yaml.list.contains[<[namespace]>]||false>:
+        - yaml savefile:../Smellycraft/<script[<[namespace]>_data].yaml_key[filename]> id:<[namespace]>
+      - if <[namespace].matches[sc_common]>:
+        - if <yaml.list.contains[sc_schedules]||false>:
+          - yaml savefile:../Smellycraft/schedules.yml id:sc_schedules
+        - foreach <server.list_online_players>:
+          - if <yaml.list.contains[sc_<[value].uuid>]>:
+            - ~yaml savefile:../Smellycraft/playerdata/<[value].uuid>.yml
+      - define feedback:<yaml[sc_common].read[messages.admin.saved]||<script[sc_common].yaml_key[messages.admin.saved]||&cError>>
+      - if <[feedback].exists>:
+        - inject <script[<yaml[<[namespace]>].read[scripts.narrator]||<script[<[namespace]>_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
+        - define feedback:!
 #####################################
 #  FEEDBACK: NARRATE OR ACTIONBAR?  #
 #####################################
@@ -234,27 +229,10 @@ sc_common_listener:
         - inject <script[sc_common_save]>
         on delta time hourly:
         - define namespace:sc_common
+        - define silent:true
         - inject <script[sc_common_save]>
         - if <yaml[sc_common].read[settings.update].to_lowercase.matches[true|enabled]||false>:
           - inject <script[<yaml[sc_common].read[scripts.update]||<script[sc_common_defaults].yaml_key[scripts.update]||sc_common_update>>]>
-sc_common_save:
-    type: task
-    debug: false
-    definitions: namespace
-    script:
-    - if <[namespace].exists||false>:
-      - if <yaml.list.contains[<[namespace]>]||false>:
-        - yaml savefile:../Smellycraft/<script[<[namespace]>_data].yaml_key[filename]> id:<[namespace]>
-      - if <[namespace].matches[sc_common]>:
-        - if <yaml.list.contains[sc_schedules]||false>:
-          - yaml savefile:../Smellycraft/schedules.yml id:sc_schedules
-        - foreach <server.list_online_players>:
-          - if <yaml.list.contains[sc_<[value].uuid>]>:
-            - ~yaml savefile:../Smellycraft/playerdata/<[value].uuid>.yml
-      - define feedback:<yaml[sc_common].read[messages.admin.saved]||<script[sc_common].yaml_key[messages.admin.saved]||&cError>>
-      - if <[feedback].exists>:
-        - inject <script[<yaml[<[namespace]>].read[scripts.narrator]||<script[<[namespace]>_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
-        - define feedback:!
 sc_common_data:
     type: yaml data
     version: 1.2
@@ -288,6 +266,7 @@ sc_common_defaults:
       disabled: '&cPlugin is currently disabled.'
     update:
       notice: '&9Version &6[version] &9available at &a[url]'
+      uptodate: '&9No new version available.'
       failed:
       - '&cVersion could not be checked.'
       - '&9Try visiting the repository:'
