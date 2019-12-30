@@ -123,6 +123,7 @@ sc_sb_events:
         - yaml set smellyboard.listener:false id:sc_<player.uuid>
         on delta time hourly:
         - define namespace:sc_sb
+        - define silent:true
         - inject <script[sc_common_save]>
         - if <yaml[sc_sb].read[settings.update].to_lowercase.matches[true|enabled]||false>:
           - inject <script[<yaml[sc_sb].read[scripts.update]||<script[sc_sb_defaults].yaml_key[scripts.update]||sc_common_update>>]>
