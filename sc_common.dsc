@@ -55,6 +55,31 @@ sc_common_cmd:
     name: smellycraft
     description: <yaml[sc_common].read[messages.description]||Global settings for Smellycraft plugins.>
     usage: /smellycraft
+    tab complete:
+    - if <player.has_permission[<yaml[sc_common].read[permissions.admin]||<script[sc_common_defaults].yaml_key[permissions.admin]||smellycraft.admin>]> || <player.is_op||false> || <context.server>:
+      - define args1:!|:reload|update|set
+    - if <context.args.size.is[==].to[0]||false>:
+      - determine <[args1]||<list[]>>
+    - else if <context.args.size.is[==].to[1]>:
+      #If half a word, partial matches from tier 1
+      #If word complete, all from tier 2
+      - determine <[args1].filter[starts_with[<context.args.last>]]||<list[]>>
+    - else if <context.args.size.is[==].to[2]>:
+      - if <context.args.get[1].to_lowercase.matches[set]||false>:
+        - determine <list[update|feedback].filter[starts_with[<context.args.last>]]||<list[]>>
+    - else if <context.args.size.is[==].to[3]>:
+      - if <context.args.get[1].to_lowercase.matches[set]||false>:
+        - if <context.args.get[2].to_lowercase.matches[feedback]>:
+          - determine <list[mode|force].filter[starts_with[<context.args.last>]]||<list[]>>
+        - else if <context.args.get[2].to_lowercase.matches[update]>:
+          - determine <list[true|false].filter[starts_with[<context.args.last>]]||<list[]>>
+    - else if <context.args.size.is[==].to[4]>:
+      - if <context.args.get[1].to_lowercase.matches[set]||false>:
+        - if <context.args.get[2].to_lowercase.matches[feedback]>:
+          - if <context.args.get[3].to_lowercase.matches[mode]>:
+            - determine <list[chat|action].filter[starts_with[<context.args.last>]]||<list[]>>
+          - else if <context.args.get[3].to_lowercase.matches[force]>:
+            - determine <list[true|false].filter[starts_with[<context.args.last>]]||<list[]>>
     script:
     - define namespace:sc_common
     - define admin:<yaml[sc_common].read[permissions.admin]||script[sc_common_defaults].yaml_key[permissions.admin]||smellycraft.admin>>
@@ -118,27 +143,28 @@ sc_common_update:
     debug: false
     definitions: namespace
     script:
-    - ~webget https://smellycraft.com/denizen/update save:sc_versions headers:host/smellycraft.com:443|user-agent/smellycraft
-    - define feedback:!
-    - if <entry[sc_versions].failed>:
-      - define feedback:<yaml[sc_common].read[messages.update.failed]||<script[sc_common_defaults].yaml_key[messages.update.failed]>>
-    - else:
-      - ~yaml loadtext:<entry[sc_versions].result> id:sc_versions
-      - define local:!|:<script[<[namespace]>_data].yaml_key[version].split[.]||0>
-      - define remote:!|:<yaml[sc_versions].read[plugins.<[namespace]>.version].split[.]||-1>
-      - foreach <[local]||null>:
-        - if <[value].is[LESS].than[<[remote].get[<[loop_index]>]>]>:
-          - define new:true
-          - foreach stop
-        - else:
-          - foreach stop
-      - if <[new]||false>:
-        - define placeholder:<yaml[sc_common].read[messages.update.notice]||<script[sc_common_defaults].yaml_key[messages.update.notice]||&cError>>
-        - define feedback:<[placeholder].replace[[version]].with[<[remote].separated_by[.]>].replace[[url]].with[<yaml[sc_versions].read[plugins.<[namespace]>.url]>]>
-    - if <[feedback].exists>:
-      - inject <script[<yaml[sc_common].read[scripts.narrator]||<script[sc_common_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
-    - if <yaml.list.contains[sc_versions]>:
-      - ~yaml unload id:sc_versions
+    - if <[namespace].exists||false>:
+      - ~webget https://smellycraft.com/denizen/update save:sc_versions headers:host/smellycraft.com:443|user-agent/smellycraft
+      - define feedback:!
+      - if <entry[sc_versions].failed>:
+        - define feedback:<yaml[sc_common].read[messages.update.failed]||<script[sc_common_defaults].yaml_key[messages.update.failed]>>
+      - else:
+        - ~yaml loadtext:<entry[sc_versions].result> id:sc_versions
+        - define local:!|:<script[<[namespace]>_data].yaml_key[version].split[.]||0>
+        - define remote:!|:<yaml[sc_versions].read[plugins.<[namespace]>.version].split[.]||-1>
+        - foreach <[local]||null>:
+          - if <[value].is[LESS].than[<[remote].get[<[loop_index]>]>]>:
+            - define new:true
+            - foreach stop
+          - else:
+            - foreach stop
+        - if <[new]||false>:
+          - define placeholder:<yaml[sc_common].read[messages.update.notice]||<script[sc_common_defaults].yaml_key[messages.update.notice]||&cError>>
+          - define feedback:<[placeholder].replace[[version]].with[<[remote].separated_by[.]>].replace[[url]].with[<yaml[sc_versions].read[plugins.<[namespace]>.url]>]>
+      - if <[feedback].exists>:
+        - inject <script[<yaml[sc_common].read[scripts.narrator]||<script[sc_common_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
+      - if <yaml.list.contains[sc_versions]>:
+        - ~yaml unload id:sc_versions
 #####################################
 #  FEEDBACK: NARRATE OR ACTIONBAR?  #
 #####################################
@@ -149,7 +175,7 @@ sc_common_feedback:
     script:
     - if <[targets].exists.not>:
       - define targets:<player||null>
-    - if <[targets].matches[null]>:
+    - if <[targets].matches[null]> || <[namespace].matches[null]> || <[feedback].matches[null]>:
       - stop
     - define prefix:<yaml[<[namespace]>].read[messages.prefix]||<script[<[namespace]>_defaults].yaml_key[messages.prefix]||&9&lb&aSmelly&2craft&9&rb]>>
     - if <yaml[sc_common].read[settings.feedback.force]||false>:
@@ -179,7 +205,7 @@ sc_common_marquee:
     definitions: title|wait|inv
     script:
     - repeat <[title].size>:
-      - inventory open d:in@generic[size=<context.inventory.size||<[inv].size>>;contents=null;title=<[title].get[<[value]>].unescaped.parse_color>]
+      - inventory open d:in@generic[size=<context.inventory.size||<[inv].size||54>>;contents=null;title=<[title].get[<[value]>].unescaped.parse_color>]
       - wait <duration[<[wait]||<yaml[sc_common].read[settings.readingtime]||<script[sc_common_defaults].yaml_key[settings.readingtime]||1.5s>>>]>
     - define title:!
     - inventory open d:<context.inventory||<[inv]>>
@@ -225,8 +251,8 @@ sc_common_save:
         - foreach <server.list_online_players>:
           - if <yaml.list.contains[sc_<[value].uuid>]>:
             - ~yaml savefile:../Smellycraft/playerdata/<[value].uuid>.yml
+      - define feedback:<yaml[sc_common].read[messages.admin.saved]||<script[sc_common].yaml_key[messages.admin.saved]||&cError>>
       - if <[feedback].exists>:
-        - define feedback:<yaml[sc_common].read[messages.admin.saved]||<script[sc_common].yaml_key[messages.admin.saved]||&cError>>
         - inject <script[<yaml[<[namespace]>].read[scripts.narrator]||<script[<[namespace]>_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
         - define feedback:!
 sc_common_data:
