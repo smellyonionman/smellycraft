@@ -5,7 +5,7 @@ plugins:
     url: https://smellycraft.com/denizen/dmoralizer
     deps: []
   sc_dce:
-    version: 1.1
+    version: 1.2
     description: 'A GUI for Residence.  Much needed and rather easy to use.'
     url: https://smellycraft.com/denizen/denizence
     deps:
@@ -13,7 +13,7 @@ plugins:
     - Depenizen
     - Residence
   sc_sb:
-    version: 1.1
+    version: 1.2
     description: 'Displays helpful and very informative information in a packet-based Sidebar.'
     url: https://smellycraft.com/denizen/smellyboard
     deps: []
@@ -28,12 +28,12 @@ plugins:
     url: https://smellycraft.com/denizen/smellytips
     deps: []
   sc_tu:
-    version: 1.1
+    version: 1.2
     description: 'Give your players MIDI files on Music Discs which work in any Jukebox. Plays with Note Block sounds.'
     url: https://smellycraft.com/denizen/smellytunes
     deps: []
   sc_tw:
-    version: 1.1
+    version: 1.2
     description: 'Multidimensional pagination for an all-in-one menu. Highly customizable.'
     url: https://smellycraft.com/denizen/smellytunes
     deps: []
@@ -43,7 +43,7 @@ plugins:
     url: https://smellycraft.com/denizen/dquake
     deps: []
   sc_common:
-    version: 1.1
+    version: 1.2
     description: 'This file contains task scripts required by all of the plugins, and provides caching and scheduling functions.'
     url: https://smellycraft.com/denizen/common
     deps: []
