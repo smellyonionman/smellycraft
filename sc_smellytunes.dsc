@@ -2,7 +2,7 @@
 # Made by Smellyonionman for Smellycraft. #
 #          onion@smellycraft.com          #
 #    Tested on Denizen-1.1.2-b4492-DEV    #
-#               Version 1.1               #
+#               Version 1.2               #
 #-----------------------------------------#
 #     Updates and notes are found at:     #
 #  https://smellycraft.com/d/smellytunes  #
@@ -18,13 +18,24 @@ sc_tu_init:
     - define namespace:sc_tu
     - define admin:<yaml[sc_tu].read[permissions.admin]||<script[sc_tu_defaults].yaml_key[permissions.admin]||smellytunes.admin>>
     - define targets:<server.list_online_players.filter[has_permission[<[admin]>]].include[<server.list_online_ops>].deduplicate||<player>>
-    - if <server.has_file[../Smellycraft/smellytunes.yml]>:
-      - ~yaml load:../Smellycraft/smellytunes.yml id:sc_tu
+    - define filename:<script[sc_tu_data].yaml_key[filename]>
+    - if <server.has_file[../Smellycraft/<[filename]>]>:
+      - if <yaml.list.contains[sc_tu]||null>:
+        - ~yaml unload id:sc_tu
+      - ~yaml load:../Smellycraft/<[filename]> id:sc_tu
     - else:
       - ~yaml create id:sc_tu
       - ~yaml loadtext:<script[sc_tu_defaults].to_json> id:sc_tu
-      - ~yaml savefile:../Smellycraft/smellytunes.yml id:sc_tu
-      - yaml set version:1.1 id:sc_tu
+    - if <server.object_is_valid[<script[sc_common_init]>].not>:
+        - define msg:'<yaml[sc_tu].read[messages.missing_common]||<script[sc_tu_defaults].yaml_key[messages.missing_common]||&cError>>'
+        - narrate <[msg].unescaped.parse_color> targets:<[targets]>
+        - stop
+    - foreach <yaml[sc_sb].list_keys[scripts]||<script[sc_sb_defaults].list_keys[scripts]||<list[]>>> as:task:
+      - if <server.object_is_valid[<script[<yaml[sc_sb].read[scripts.<[task]>]||<script[sc_sb_defaults].yaml_key[scripts.<[task]>]>>]>].not>:
+        - define placeholder:<yaml[sc_sb].read[messages.missing_script]||<script[sc_sb_defaults].yaml_key[messages.missing_script]||&cError>>
+        - narrate '<[placeholder].replace[[script]].with[<[task]>].separated_by[&sp].unescaped.parse_color>' targets:<[targets]>
+        - stop
+    - ~yaml savefile:../Smellycraft/<[filename]> id:sc_tu
     - if <server.has_file[../Smellycraft/data/jukeboxes.yml]>:
       - ~yaml load:../Smellycraft/data/jukeboxes.yml id:sc_tu_jb
       - foreach <yaml[sc_tu_jb].list_keys[]> as:jukebox:
@@ -44,8 +55,9 @@ sc_tu_cmd:
     - if <context.args.size.is[MORE].than[0]||false>:
       - define admin:<yaml[sc_tu].read[permissions.admin]||<script[sc_tu_defauls].yaml_key[permissions.admin]||smellytunes.admin>>
       - if <context.args.get[1].to_lowercase.matches[(save|update|reload)]||false>:
-        - define filename:smellytunes.yml
-        - inject <script[sc_common_datacmd]>
+        - if <player.has_permission[<[admin]>]||false> || <player.is_op||false> || <context.server>:
+          - define arg:<context.args.get[1]>
+          - inject <script[sc_common_datacmd]>
       - else if <context.args.get[1].to_lowercase.matches[credits]||false>:
         - define feedback:&9made&spby&spyour&spfriend&sp&6smellyonionman&9!&nl&9Go&spto&sp&ahttps&co//smellycraft.com/smellytunes&sp&9for&spinfo.
       - else if <context.args.get[1].to_lowercase.matches[disable]||false>:
@@ -55,7 +67,7 @@ sc_tu_cmd:
           - ~yaml set settings.enabled:false
           - define feedback:<yaml[sc_tu].read[messages.disabled]||<script[sc_tu_defaults].yaml_key[messages.disabled]||&cError>>
         - else:
-          - define feedback:<yaml[sc_tu].read[messages.permission]||<script[sc_tu_defaults].yaml_key[messages.permission]||&cError>>
+          - define feedback:<yaml[sc_common].read[messages.permission]||<script[sc_common_defaults].yaml_key[messages.permission]||&cError>>
       - else if <context.args.get[1].to_lowercase.matches[enable]||false>:
         - if <player.has_permission[<[admin]>]||false> || <player.is_op||false> || <context.server>:
           - if <yaml[sc_tu].read[settings.enabled]||false>:
@@ -63,7 +75,7 @@ sc_tu_cmd:
           - yaml set settings.enabled:true
           - define feedback:<yaml[sc_tu].read[messages.enabled]||<script[sc_tu_defaults].yaml_key[messages.enabled]||&cError>>
         - else:
-          - define feedback:<yaml[sc_tu].read[messages.permission]||<script[sc_tu_defaults].yaml_key[messages.permission]||&cError>>
+          - define feedback:<yaml[sc_common].read[messages.permission]||<script[sc_common_defaults].yaml_key[messages.permission]||&cError>>
     - if <[feedback].exists>:
       - inject <script[<yaml[sc_tu].read[scripts.narrator]||<script[sc_tu_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
 sc_tu_listener:
@@ -76,13 +88,13 @@ sc_tu_listener:
         on server start priority:1:
         - inject <script[sc_tu_init]>
         on shutdown:
-        - yaml savefile:../Smellycraft/smellytunes.yml id:sc_tu
+        - define namespace:sc_tu
+        - inject <script[sc_common_save]>
         - yaml savefile:../Smellycraft/data/jukeboxes.yml id:sc_tu_jb
         - yaml unload id:sc_tu
         - yaml unload id:sc_tu_jb
         on delta time hourly:
         - define namespace:sc_tu
-        - define filename:smellytunes.yml
         - inject <script[sc_common_save]>
         - if <yaml[sc_tu].read[settings.update].to_lowercase.matches[true|enabled]||false>:
           - inject <script[<yaml[sc_tu].read[scripts.update]||<script[sc_tu_defaults].yaml_key[scripts.update]||sc_common_update>>]>
@@ -122,7 +134,7 @@ sc_tu_listener:
             - else:
               - define feedback:<yaml[sc_tu].read[messages.playcount]||<script[sc_tu_defaults].yaml_key[messages.playcount]||&cError>>
           - else:
-            - define feedback:<yaml[sc_tu].read[messages.permission]||<script[sc_tu_defaults].yaml_key[messages.permission]||&cError>>
+            - define feedback:<yaml[sc_common].read[messages.permission]||<script[sc_common_defaults].yaml_key[messages.permission]||&cError>>
         - if <[feedback].exists>:
           - inject <script[<yaml[sc_tu].read[scripts.narrator]||<script[sc_tu_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
         on player breaks jukebox:
@@ -140,6 +152,14 @@ sc_tu_eject:
         - drop <item[<yaml[sc_tu_jb].read[<[jukebox]>.scriptname]>]> <context.location.relative[0,1,0]>
         - yaml set <[jukebox]>:! id:sc_tu_jb
         - stop
+sc_tu_data:
+    type: yaml data
+    version: 1.2
+    filename: smellytunes.yml
+    scripts:
+      reload: sc_tu_init
+      save: sc_common_save
+      update: sc_common_update
 sc_tu_defaults:
   type: yaml data
   settings:
@@ -149,6 +169,7 @@ sc_tu_defaults:
     enabled: true
     dir: smellytunes
     update: true
+    gui: functions
   permissions:
     use: smellytunes.use
     bypass: smellytunes.bypass
@@ -156,12 +177,12 @@ sc_tu_defaults:
   scripts:
     narrator: sc_common_feedback
     GUI: sc_common_marquee
-    update: sc_common_update
   messages:
     prefix: '&9[&aSmelly&2Tunes&9]'
-    permission: '&cYou don''t have permission.'
     description: 'Interfaces with the Smellytunes plugin.'
     reload: '&9Plugin has been successfully reloaded.'
+    missing_common: '&This plugin uses code contained in sc_common.yml.  Visit https://smellycraft.com/d/common for the most recent version.'
+    missing_script: '&9 Script &a[script] &9was not detected. &c Installation not complete. &9An alternative is available in the Common Files.'
     wait: '&9Please wait...'
     playing: '&9Now playing:'
     playcount: '&cToo many songs playing.'
