@@ -157,7 +157,7 @@ sc_common_save:
           - if <yaml.list.contains[sc_<[value].uuid>]>:
             - ~yaml savefile:../Smellycraft/playerdata/<[value].uuid>.yml
       - define feedback:<yaml[sc_common].read[messages.admin.saved]||<script[sc_common].yaml_key[messages.admin.saved]||&cError>>
-      - if <[feedback].exists>:
+      - if <[feedback].exists> && <[silent].exists.not>:
         - inject <script[<yaml[<[namespace]>].read[scripts.narrator]||<script[<[namespace]>_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
         - define feedback:!
 #####################################
