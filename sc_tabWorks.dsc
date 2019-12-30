@@ -262,7 +262,7 @@ sc_tw_defaults:
     admin: tabworks.admin
     use: tabworks.use
   messages:
-    prefix: '&9[&2Tab&aWorks&9]'
+    prefix: '&9[&aTab&2Works&9]'
     reload: '&9Plugin has been reloaded.'
     description: 'Multidimensional GUI fit for almost any purpose.'
     missing_common: '&This plugin uses code contained in sc_common.yml.  Visit https://smellycraft.com/d/common for the most recent version.'
