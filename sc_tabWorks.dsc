@@ -188,6 +188,7 @@ sc_tw_listener:
         - inject <script[sc_common_save]>
         on delta time hourly:
         - define namespace:sc_tw
+        - define silent:true
         - inject <script[sc_common_save]>
         - if <yaml[sc_tw].read[settings.update].to_lowercase.matches[true|enabled]||false>:
           - inject <script[<script[sc_tw_data].yaml_key[scripts.update]||sc_common_update>]>
