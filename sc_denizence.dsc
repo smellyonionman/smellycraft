@@ -1,8 +1,8 @@
 ###########################################
 # Made by Smellyonionman for Smellycraft. #
 #          onion@smellycraft.com          #
-#    Tested on Denizen-1.1.1-b4492-DEV    #
-#               Version 1.1               #
+#    Tested on Denizen-1.1.2-b4492-DEV    #
+#               Version 1.2               #
 #-----------------------------------------#
 #     Updates and notes are found at:     #
 #   https://smellycraft.com/d/denizence   #
@@ -18,9 +18,13 @@ sc_dce_init:
     debug: false
     script:
     - define namespace:sc_dce
-    - define targets:<server.list_online_players.filter[has_permission[residence.admin]]||<player>>
-    - if <server.has_file[../Smellycraft/denizence.yml]||false>:
-      - ~yaml load:../Smellycraft/denizence.yml id:sc_dce
+    - define admin:<yaml[sc_dce].read[permissions.admin]||<script[sc_dce_defaults].yaml_key[permissions.admin]||residence.admin>>
+    - define targets:<server.list_online_players.filter[has_permission[<[admin]>]].include[<server.list_online_ops>].deduplicate||<player>>
+    - define filename:<script[sc_dce_data].yaml_key[filename]>
+    - if <server.has_file[../Smellycraft/<[filename]>]||false>:
+      - if <yaml.list.contains[sc_dce]||null>:
+        - ~yaml unload id:sc_dce
+      - ~yaml load:../Smellycraft/<[filename]> id:sc_dce
     - else:
       - ~yaml create id:sc_dce
       - define payload:<script[sc_dce_defaults].to_json||null>
@@ -29,43 +33,27 @@ sc_dce_init:
         - define payload:<entry[sc_raw].result>
       - ~yaml loadtext:<[payload]> id:sc_dce
       - yaml set type:! id:sc_dce
+    - if <server.object_is_valid[<script[sc_common_init]>].not>:
+        - define msg:<yaml[sc_dce].read[messages.missing_common]||<script[sc_dce_defaults].yaml_key[messages.missing_common]||&cError>>
+        - narrate <[msg].unescaped.parse_color> targets:<[targets]>
+        - stop
     - foreach <yaml[sc_dce].list_keys[scripts]||<script[sc_dce_defaults].list_keys[scripts]||<list[]>>> as:task:
       - if <server.object_is_valid[<script[<yaml[sc_dce].read[scripts.<[task]>]||<script[sc_dce_defaults].yaml_key[scripts.<[task]>]>>]>].not>:
         - define placeholder:<yaml[sc_dce].read[messages.missing_script]||<script[sc_dce_defaults].yaml_key[messages.missing_script]||&cError>>
-        - narrate '<[placeholder].replace[[script]].with[<[task]>].separated_by[&sp].unescaped.parse_color>'
+        - narrate '<[placeholder].replace[[script]].with[<[task]>].separated_by[&sp].unescaped.parse_color>' targets:<[targets]>
         - stop
-      - ~yaml loadtext:../plugins/Residence/config.yml id:sc_dce_resconf
-      - yaml set gui.current.material.create:<yaml[sc_dce_resconf].read[Global.SelectionToolId]||wooden_axe> id:sc_dce
-      - ~yaml unload id:sc_dce_resconf
-      - ~yaml savefile:../Smellycraft/denizence.yml id:sc_dce
-      - yaml set version:1.1 id:sc_dce
-      - define feedback:<yaml[sc_dce].read[messages.reload]||<script[sc_dce_defaults].yaml_key[messages.reload]||&cError>>
+    - ~yaml load:../Residence/config.yml id:sc_dce_resconf
+    - yaml set gui.current.material.create:<yaml[sc_dce_resconf].read[Global.SelectionToolId]||wooden_axe> id:sc_dce
+    - ~yaml unload id:sc_dce_resconf
+    - ~yaml savefile:../Smellycraft/<[filename]> id:sc_dce
+    - define feedback:<yaml[sc_dce].read[messages.reload]||<script[sc_dce_defaults].yaml_key[messages.reload]||&cError>>
     - inject <script[<yaml[sc_dce].read[scripts.narrator]||<script[sc_dce_defaults].yaml_key[scripts.narrator]>>]>
 sc_dce_cmd:
     type: command
     debug: false
     name: denizence
-    description: <yaml[sc_dce].read[messages.description]||GUI for Residence Users>
+    description: <yaml[sc_dce].read[messages.description]||GUI for Residence Users.>
     usage: /denizence
-    script:
-    - define namespace:sc_dce
-    - define admin:<yaml[sc_dce].read[permissions.admin]||<script[sc_dce_defaults].yaml_key[permissions.admin]>>
-    - if <context.args.size.is[==].to[0]||false>:
-      - if <player.has_permission[<yaml[sc_dce].read[permissions.use]||<script[sc_dce_defaults].yaml_key[permissions.use]>>]>:
-        - inventory open d:<inventory[sc_dce_menu]>
-      - else:
-        - define feedback:<yaml[sc_common].read[messages.permission]||<script[sc_dce_defaults].yaml_key[messages.permission]&cError>>
-    - else:
-      - if <context.args.get[1].to_lowercase.matches[(save|update|reload)]||false>:
-        - define filename:denizence.yml
-        - inject <script[sc_common_datacmd]>
-      - else if <context.args.get[1].to_lowercase.matches[credits]||false>:
-        - define feedback:'&2Denizence &9made by your friend &6smellyonionman&nl&9Go to &ahttps&co//smellycraft.com/denizence &9for info.'
-      - if <context.args.size.is[MORE].than[1]>:
-        - define placeholder:<yaml[sc_common].read[messages.admin.args_i]||<script[sc_common_defaults].yaml_key[messages.admin.args_i]||&cError>>
-        - define feedback:<[placeholder].replace[[args]].with[<context.args.get[1]>
-    - if <[feedback].exists>:
-      - inject <script[<yaml[sc_dce].read[scripts.narrator]||<script[sc_dce_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
 sc_dce_menu:
     type: inventory
     debug: false
@@ -317,12 +305,12 @@ sc_dce_listener:
         - inject <script[sc_dce_init]>
         on delta time hourly:
         - define namespace:sc_dce
-        - define filename:denizence.yml
         - inject <script[sc_common_save]>
         - if <yaml[sc_dce].read[settings.update].to_lowercase.matches[true|enabled]||false>:
           - inject <script[<yaml[sc_dce].read[scripts.update]||<script[sc_dce_defaults].yaml_key[scripts.update]||sc_common_update>>]>
         on shutdown:
-        - ~yaml savefile:../Smellycraft/denizence.yml id:sc_dce
+        - define namespace:sc_dce
+        - inject <script[sc_common_save]>
         - yaml unload id:sc_dce
         on player opens sc_dce_menu:
         - define namespace:sc_dce
@@ -525,6 +513,14 @@ sc_dce_listener:
           - inventory open d:<[inv]>
           - if <[marquee].exists>:
             - inject <script[<yaml[sc_dce].read[scripts.GUI]||<script[sc_dce_defaults].yaml_key[scripts.GUI]||sc_common_marquee>>]>
+sc_dce_data:
+    type: yaml data
+    version: 1.2
+    filename: denizence.yml
+    scripts:
+      reload: sc_dce_init
+      save: sc_common_save
+      update: sc_common_update
 sc_dce_defaults:
   type: yaml data
   settings:
@@ -535,16 +531,12 @@ sc_dce_defaults:
   scripts:
     narrator: sc_common_feedback
     GUI: sc_common_marquee
-    update: sc_common_update
   messages:
-    prefix: '&a&lb&2Denizence&a&rb'
-    description: 'GUI for Residence Users'
+    prefix: '&9&lb&aDeniz&2ence&9&rb'
+    description: 'GUI for Residence Users.'
     reload: '&9Plugin has been reloaded.'
-    permission: '&cYou don''t have permission.'
-    missing_script:
-    - '&c Script [script] was not detected.'
-    - '&c Installation not complete.'
-    - '&c Did you install the common files?'
+    missing_common: '&This plugin uses code contained in sc_common.yml.  Visit https://smellycraft.com/d/common for the most recent version.'
+    missing_script: '&9 Script &a[script] &9was not detected. &c Installation not complete. &9An alternative is available in the Common Files.'
     enter_name: '&9Enter Residence name.&nl&7To resume chatting, type cancel, wait 60 seconds or just relog.'
     enter_subzone: '&9Enter Subzone name.&nl&7To resume chatting, type cancel, wait 60 seconds or just relog.'
     enter_player: '&9Enter Player name.&nl&7To resume chatting, type cancel, wait 60 seconds or just relog.'
@@ -572,7 +564,7 @@ sc_dce_defaults:
       cancel_list: '    &cArea was not put up for rent.'
     current:
       material:
-        create: wooden_axe
+        create: golden_shovel
         owned: oak_door
         not_owned: iron_door
       display:
