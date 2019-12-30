@@ -95,6 +95,7 @@ sc_tu_listener:
         - yaml unload id:sc_tu_jb
         on delta time hourly:
         - define namespace:sc_tu
+        - define silent:true
         - inject <script[sc_common_save]>
         - if <yaml[sc_tu].read[settings.update].to_lowercase.matches[true|enabled]||false>:
           - inject <script[<yaml[sc_tu].read[scripts.update]||<script[sc_tu_defaults].yaml_key[scripts.update]||sc_common_update>>]>
