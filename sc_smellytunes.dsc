@@ -2,7 +2,7 @@
 # Made by Smellyonionman for Smellycraft. #
 #          onion@smellycraft.com          #
 #    Tested on Denizen-1.1.2-b4492-DEV    #
-#               Version 1.2               #
+#               Version 1.3               #
 #-----------------------------------------#
 #     Updates and notes are found at:     #
 #  https://smellycraft.com/d/smellytunes  #
@@ -80,10 +80,10 @@ sc_tu_cmd:
       - inject <script[<yaml[sc_tu].read[scripts.narrator]||<script[sc_tu_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
 sc_tu_listener:
     type: world
-    debug: false
+    debug: true
     events:
         on reload scripts:
-        - if <server.has_file[../Smellycraft/smellytunes.yml].not||false>:
+        - if <server.has_file[../Smellycraft/<script[sc_tu_data].yaml_key[filename]||smellytunes.yml>].not||false>:
           - inject <script[sc_tu_init]>
         on server start priority:1:
         - inject <script[sc_tu_init]>
@@ -103,8 +103,8 @@ sc_tu_listener:
         - define namespace:sc_tu
         - inject <script[sc_tu_eject]>
         - if <context.item.has_nbt[smellytunes]||false>:
-          - if <yaml[sc_tu].read[settings.enabled].not||false>:
-            - stop
+          - if <yaml[sc_tu].read[settings.enabled].not||<script[sc_tu_defaults].yaml_key[settings.enabled].not||false>>:
+            - determine fulfilled
           - determine passively cancelled
           - define use:<yaml[sc_tu].read[permissions.use]||<script[sc_tu_defaults].yaml_key[permissions.use]||smellytunes.use>>
           - if <player.has_permission[<[use]>]> || <player.is_op>:
@@ -114,13 +114,14 @@ sc_tu_listener:
             - if <[playing].is[LESS].than[<[max]>]||true> || <player.has_permission[<[bypass]>]> || <player.is_op>:
               - define redstone:<yaml[sc_tu].read[settings.redstone]||<script[sc_tu_defaults].yaml_key[settings.redstone]||false>>
               - if <[redstone].not.or[<context.location.power.is[MORE].than[0]>]>:
-                - if <player.gamemode.id.is[==].to[0]>:
+                - if <player.gamemode.matches[SURVIVAL]>:
                   - take <context.item>
                 - yaml set <context.location.simple>.track:<context.item.nbt[smellytunes]> id:sc_tu_jb
                 - yaml set <context.location.simple>.scriptname:<context.item.scriptname> id:sc_tu_jb
+                - yaml set <context.location.simple>.queue:<queue.id> id:sc_tu_jb
                 - yaml set <context.location.simple>.state:playing id:sc_tu_jb
-                - yaml set <context.location.simple>.queue:<queue> id:sc_tu_jb
                 - yaml set sc_tu.playcount.<context.item.scriptname>:++ id:sc_<player.uuid>
+                - ~yaml savefile:../Smellycraft/data/jukeboxes.yml id:sc_tu_jb
                 - yaml set sc_tu.playing:++ id:sc_cache
                 - define range:<yaml[sc_tu].read[settings.range]||<script[sc_tu_defaults].yaml_key[settings.range]||5>>
                 - define volume:<tern[<[redstone]>].pass[<context.location.power.min[<[range]>]>].fail[<[range]>]>
@@ -129,6 +130,7 @@ sc_tu_listener:
                 - define dir:<yaml[sc_tu].read[settings.dir]||<script[sc_tu_defaults].yaml_key[settings.dir]||smellytunes>>
                 - ~midi file:<[dir]>/<context.item.nbt[smellytunes]> <context.location> volume:<[volume]>
                 - yaml set <context.location.simple>.state:finished id:sc_tu_jb
+                - ~yaml savefile:../Smellycraft/data/jukeboxes.yml id:sc_tu_jb
                 - yaml set sc_tu.playing:-- id:sc_cache
               - else:
                 - define feedback:<yaml[sc_tu].read[messages.nosignal]||<script[sc_tu_defaults].yaml_key[messages.nosignal]||&cError>>
@@ -143,19 +145,24 @@ sc_tu_listener:
         - inject <script[sc_tu_eject]>
 sc_tu_eject:
     type: task
-    debug: false
+    debug: true
     script:
     - foreach <yaml[sc_tu_jb].list_keys[]> as:jukebox:
       - if <[jukebox].matches[<context.location.simple>]>:
         - determine passively cancelled
-        - midi cancel <context.location>
-        - queue <yaml[sc_tu_jb].read[.<[jukebox]>.queue]> stop
+        - if <yaml[sc_tu_jb].read[<[jukebox]>.state].matches[playing|finished]>:
+          - if <yaml[sc_tu_jb].read[<[jukebox]>.state].matches[playing]>:
+            - midi cancel <context.location>
+            - define queue:<yaml[sc_tu_jb].read[<[jukebox]>.queue]||null>
+            - if <queue.exists[<[queue]>]>:
+              - queue <queue[<[queue]>]> stop
         - drop <item[<yaml[sc_tu_jb].read[<[jukebox]>.scriptname]>]> <context.location.relative[0,1,0]>
         - yaml set <[jukebox]>:! id:sc_tu_jb
+        - ~yaml savefile:../Smellycraft/data/jukeboxes.yml id:sc_tu_jb
         - stop
 sc_tu_data:
     type: yaml data
-    version: 1.2
+    version: 1.3
     filename: smellytunes.yml
     scripts:
       reload: sc_tu_init
@@ -163,6 +170,11 @@ sc_tu_data:
       update: sc_common_update
 sc_tu_defaults:
   type: yaml data
+  poorly_disguised_comments:
+    if_you_delete_jukeboxes_dot_yml: 'All of your players jukeboxes will be irreversibly emptied.'
+    download_common_files_at: 'https://smellycraft.com/denizen/common'
+    coming_soon: 'admin gui, redstone controls, vinyl press, surround sound'
+    warning: 'this plugin was meant for high performance servers. Set "max" accordingly.'
   settings:
     max: 3
     redstone: false
@@ -170,7 +182,6 @@ sc_tu_defaults:
     enabled: true
     dir: smellytunes
     update: true
-    gui: functions
   permissions:
     use: smellytunes.use
     bypass: smellytunes.bypass
