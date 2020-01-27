@@ -2,7 +2,7 @@
 # Made by Smellyonionman for Smellycraft. #
 #          onion@smellycraft.com          #
 #    Tested on Denizen-1.1.2-b4492-DEV    #
-#               Version 1.2               #
+#              Version 1.2.1              #
 #-----------------------------------------#
 #     Updates and notes are found at:     #
 #     https://smellycraft.com/denizen     #
@@ -55,6 +55,31 @@ sc_common_cmd:
     name: smellycraft
     description: <yaml[sc_common].read[messages.description]||Global settings for Smellycraft plugins.>
     usage: /smellycraft
+    tab complete:
+    - if <player.has_permission[<yaml[sc_common].read[permissions.admin]||<script[sc_common_defaults].yaml_key[permissions.admin]||smellycraft.admin>]> || <player.is_op||false> || <context.server>:
+      - define args1:!|:reload|update|set
+    - if <context.args.size.is[==].to[0]||false>:
+      - determine <[args1]||<list[]>>
+    - else if <context.args.size.is[==].to[1]>:
+      #If half a word, partial matches from tier 1
+      #If word complete, all from tier 2
+      - determine <[args1].filter[starts_with[<context.args.last>]]||<list[]>>
+    - else if <context.args.size.is[==].to[2]>:
+      - if <context.args.get[1].to_lowercase.matches[set]||false>:
+        - determine <list[update|feedback].filter[starts_with[<context.args.last>]]||<list[]>>
+    - else if <context.args.size.is[==].to[3]>:
+      - if <context.args.get[1].to_lowercase.matches[set]||false>:
+        - if <context.args.get[2].to_lowercase.matches[feedback]>:
+          - determine <list[mode|force].filter[starts_with[<context.args.last>]]||<list[]>>
+        - else if <context.args.get[2].to_lowercase.matches[update]>:
+          - determine <list[true|false].filter[starts_with[<context.args.last>]]||<list[]>>
+    - else if <context.args.size.is[==].to[4]>:
+      - if <context.args.get[1].to_lowercase.matches[set]||false>:
+        - if <context.args.get[2].to_lowercase.matches[feedback]>:
+          - if <context.args.get[3].to_lowercase.matches[mode]>:
+            - determine <list[chat|action].filter[starts_with[<context.args.last>]]||<list[]>>
+          - else if <context.args.get[3].to_lowercase.matches[force]>:
+            - determine <list[true|false].filter[starts_with[<context.args.last>]]||<list[]>>
     script:
     - define namespace:sc_common
     - define admin:<yaml[sc_common].read[permissions.admin]||script[sc_common_defaults].yaml_key[permissions.admin]||smellycraft.admin>>
@@ -155,9 +180,9 @@ sc_common_save:
           - yaml savefile:../Smellycraft/schedules.yml id:sc_schedules
         - foreach <server.list_online_players>:
           - if <yaml.list.contains[sc_<[value].uuid>]>:
-            - ~yaml savefile:../Smellycraft/playerdata/<[value].uuid>.yml
+            - ~yaml savefile:../Smellycraft/playerdata/<[value].uuid>.yml id:sc_<player.uuid>
       - define feedback:<yaml[sc_common].read[messages.admin.saved]||<script[sc_common].yaml_key[messages.admin.saved]||&cError>>
-      - if <[feedback].exists> && <[silent].exists.not>:
+      - if <[feedback].exists> &&  <[silent].exists.not>:
         - inject <script[<yaml[<[namespace]>].read[scripts.narrator]||<script[<[namespace]>_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
         - define feedback:!
 #####################################
@@ -235,7 +260,7 @@ sc_common_listener:
           - inject <script[<yaml[sc_common].read[scripts.update]||<script[sc_common_defaults].yaml_key[scripts.update]||sc_common_update>>]>
 sc_common_data:
     type: yaml data
-    version: 1.2
+    version: 1.2.1
     filename: common.yml
     scripts:
       reload: sc_common_init
@@ -276,3 +301,19 @@ sc_common_defaults:
       disabled: '&cUpdates disabled.'
       disabled-no: '&9Updates are already disabled.'
       specify: '&cPlease specify enable or disable.'
+#This tree exposes the layout of all commands and arguments with suitable permissions
+#sc_common_args:
+  #type: yaml data
+  #smellycraft:
+    #reload: admin
+    #update: admin
+    #set:
+      #feedback:
+        #chat:
+        #- admin
+        #- chatperm
+        #actionbar: admin
+        #custom: admin
+      #update:
+        #true: admin
+        #false: admin
