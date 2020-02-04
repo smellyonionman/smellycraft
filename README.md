@@ -2,7 +2,7 @@
 Feature-rich *Denizen plugins* for Spigot Minecraft servers.  
 Each **requires** the presence of `sc_common.dsc`, or suitable alternatives.  
 Made for [Smellycraft.com](https://smellycraft.com) by Smelly Onion Man, 2019.  
-Denizen amateur hour: [Twitch](https://twitch.tv/smellyonionman) (don't tell mcmonkey)  
+Denizen amateur hour: [Twitch](https://twitch.tv/smellyonionman)  
 
 Each plugin features:
 - GUI for all player features and tab-completed commands
