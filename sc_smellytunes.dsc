@@ -2,7 +2,7 @@
 # Made by Smellyonionman for Smellycraft. #
 #          onion@smellycraft.com          #
 #    Tested on Denizen-1.1.2-b4566-DEV    #
-#              Version 1.3.1              #
+#              Version 1.3.2              #
 #-----------------------------------------#
 #     Updates and notes are found at:     #
 #  https://smellycraft.com/d/smellytunes  #
@@ -109,7 +109,9 @@ sc_tu_listener:
           - define use:<yaml[sc_tu].read[permissions.use]||<script[sc_tu_defaults].yaml_key[permissions.use]||smellytunes.use>>
           - if <player.has_permission[<[use]>]> || <player.is_op>:
             - define max:<yaml[sc_tu].read[settings.max]||3>
-            - define playing:<yaml[sc_cache].read[sc_tu.playing]||0>
+            - foreach <yaml[sc_tu_jb].list_keys[]>:
+              - if <yaml[sc_tu_jb].read[<[value]>.state].matches[playing]>:
+                - define playing:++
             - define bypass:<yaml[sc_tu].read[permissions.bypass]||<script[sc_tu_defaults].yaml_key[permissions.bypass]||smellytunes.bypass>>
             - if <[playing].is[LESS].than[<[max]>]||true> || <player.has_permission[<[bypass]>]> || <player.is_op>:
               - define redstone:<yaml[sc_tu].read[settings.redstone]||<script[sc_tu_defaults].yaml_key[settings.redstone]||false>>
@@ -122,7 +124,6 @@ sc_tu_listener:
                 - yaml set <context.location.simple>.state:playing id:sc_tu_jb
                 - yaml set sc_tu.playcount.<context.item.scriptname>:++ id:sc_<player.uuid>
                 - ~yaml savefile:../Smellycraft/data/jukeboxes.yml id:sc_tu_jb
-                - yaml set sc_tu.playing:++ id:sc_cache
                 - define range:<yaml[sc_tu].read[settings.range]||<script[sc_tu_defaults].yaml_key[settings.range]||5>>
                 - define volume:<tern[<[redstone]>].pass[<context.location.power.min[<[range]>]>].fail[<[range]>]>
                 - define feedback:<yaml[sc_tu].read[messages.playing]||<script[sc_tu_defaults].yaml_key[messages.playing]||&cError>><&sp><context.item.display.strip_color||&cUnknown>
@@ -131,7 +132,6 @@ sc_tu_listener:
                 - ~midi file:<[dir]>/<context.item.nbt[smellytunes]> <context.location> volume:<[volume]>
                 - yaml set <context.location.simple>.state:finished id:sc_tu_jb
                 - ~yaml savefile:../Smellycraft/data/jukeboxes.yml id:sc_tu_jb
-                - yaml set sc_tu.playing:-- id:sc_cache
               - else:
                 - define feedback:<yaml[sc_tu].read[messages.nosignal]||<script[sc_tu_defaults].yaml_key[messages.nosignal]||&cError>>
             - else:
@@ -163,7 +163,7 @@ sc_tu_eject:
         - stop
 sc_tu_data:
     type: yaml data
-    version: 1.3.1
+    version: 1.3.2
     filename: smellytunes.yml
     scripts:
       reload: sc_tu_init
