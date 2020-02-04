@@ -152,11 +152,9 @@ sc_common_update:
         - ~yaml loadtext:<entry[sc_versions].result> id:sc_versions
         - define local:!|:<script[<[namespace]>_data].yaml_key[version].split[.]||0>
         - define remote:!|:<yaml[sc_versions].read[plugins.<[namespace]>.version].split[.]||-1>
-        - foreach <[local]||null>:
-          - if <[value].is[LESS].than[<[remote].get[<[loop_index]>]>]>:
+        - foreach <[remote]||null>:
+          - if <[value].is[MORE].than[<[local].get[<[loop_index]>]||0>]>:
             - define new:true
-            - foreach stop
-          - else:
             - foreach stop
         - if <[new]||false>:
           - define placeholder:<yaml[sc_common].read[messages.update.notice]||<script[sc_common_defaults].yaml_key[messages.update.notice]||&cError>>
