@@ -28,7 +28,7 @@ plugins:
     url: https://smellycraft.com/denizen/smellytips
     deps: []
   sc_tu:
-    version: 1.3.1
+    version: 1.3.2
     description: 'Give your players MIDI files on Music Discs which work in any Jukebox. Plays with Note Block sounds.'
     url: https://smellycraft.com/denizen/smellytunes
     deps: []
