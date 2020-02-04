@@ -1,7 +1,7 @@
 ###########################################
 # Made by Smellyonionman for Smellycraft. #
 #          onion@smellycraft.com          #
-#    Tested on Denizen-1.1.2-b4492-DEV    #
+#    Tested on Denizen-1.1.2-b4566-DEV    #
 #              Version 1.2.1              #
 #-----------------------------------------#
 #     Updates and notes are found at:     #
