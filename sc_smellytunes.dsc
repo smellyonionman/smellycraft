@@ -2,7 +2,7 @@
 # Made by Smellyonionman for Smellycraft. #
 #          onion@smellycraft.com          #
 #    Tested on Denizen-1.1.2-b4492-DEV    #
-#               Version 1.3               #
+#              Version 1.3.1              #
 #-----------------------------------------#
 #     Updates and notes are found at:     #
 #  https://smellycraft.com/d/smellytunes  #
@@ -142,6 +142,7 @@ sc_tu_listener:
           - inject <script[<yaml[sc_tu].read[scripts.narrator]||<script[sc_tu_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
         on player breaks jukebox:
         - define namespace:sc_tu
+        - modifyblock <context.location> air naturally
         - inject <script[sc_tu_eject]>
 sc_tu_eject:
     type: task
@@ -162,7 +163,7 @@ sc_tu_eject:
         - stop
 sc_tu_data:
     type: yaml data
-    version: 1.3
+    version: 1.3.1
     filename: smellytunes.yml
     scripts:
       reload: sc_tu_init
