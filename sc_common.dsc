@@ -2,7 +2,7 @@
 # Made by Smellyonionman for Smellycraft. #
 #          onion@smellycraft.com          #
 #    Tested on Denizen-1.1.2-b4566-DEV    #
-#              Version 1.2.1              #
+#              Version 1.2.2              #
 #-----------------------------------------#
 #     Updates and notes are found at:     #
 #     https://smellycraft.com/denizen     #
@@ -176,11 +176,8 @@ sc_common_save:
       - if <[namespace].matches[sc_common]>:
         - if <yaml.list.contains[sc_schedules]||false>:
           - yaml savefile:../Smellycraft/schedules.yml id:sc_schedules
-        - foreach <server.list_online_players>:
-          - if <yaml.list.contains[sc_<[value].uuid>]>:
-            - ~yaml savefile:../Smellycraft/playerdata/<[value].uuid>.yml id:sc_<player.uuid>
       - define feedback:<yaml[sc_common].read[messages.admin.saved]||<script[sc_common].yaml_key[messages.admin.saved]||&cError>>
-      - if <[feedback].exists> &&  <[silent].exists.not>:
+      - if <[feedback].exists> && <[silent].exists.not>:
         - inject <script[<yaml[<[namespace]>].read[scripts.narrator]||<script[<[namespace]>_defaults].yaml_key[scripts.narrator]||sc_common_feedback>>]>
         - define feedback:!
 #####################################
@@ -254,11 +251,14 @@ sc_common_listener:
         - define namespace:sc_common
         - define silent:true
         - inject <script[sc_common_save]>
+        - foreach <server.list_online_players>:
+          - if <yaml.list.contains[sc_<[value].uuid>]>:
+            - ~yaml savefile:../Smellycraft/playerdata/<[value].uuid>.yml id:sc_<player.uuid>
         - if <yaml[sc_common].read[settings.update].to_lowercase.matches[true|enabled]||false>:
           - inject <script[<yaml[sc_common].read[scripts.update]||<script[sc_common_defaults].yaml_key[scripts.update]||sc_common_update>>]>
 sc_common_data:
     type: yaml data
-    version: 1.2.1
+    version: 1.2.2
     filename: common.yml
     scripts:
       reload: sc_common_init
