@@ -43,7 +43,7 @@ plugins:
     url: https://smellycraft.com/denizen/dquake
     deps: []
   sc_common:
-    version: 1.2.2
+    version: 1.2.3
     description: 'This file contains task scripts required by all of the plugins, and provides caching and scheduling functions.'
     url: https://smellycraft.com/denizen/common
     deps: []
