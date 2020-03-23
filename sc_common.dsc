@@ -1,8 +1,8 @@
 ###########################################
 # Made by Smellyonionman for Smellycraft. #
 #          onion@smellycraft.com          #
-#    Tested on Denizen-1.1.2-b4566-DEV    #
-#              Version 1.2.2              #
+#    Tested on Denizen-1.1.4-b4664-DEV    #
+#              Version 1.2.3              #
 #-----------------------------------------#
 #     Updates and notes are found at:     #
 #     https://smellycraft.com/denizen     #
@@ -253,12 +253,12 @@ sc_common_listener:
         - inject <script[sc_common_save]>
         - foreach <server.list_online_players>:
           - if <yaml.list.contains[sc_<[value].uuid>]>:
-            - ~yaml savefile:../Smellycraft/playerdata/<[value].uuid>.yml id:sc_<player.uuid>
+            - ~yaml savefile:../Smellycraft/playerdata/<[value].uuid>.yml id:sc_<[value].uuid>
         - if <yaml[sc_common].read[settings.update].to_lowercase.matches[true|enabled]||false>:
           - inject <script[<yaml[sc_common].read[scripts.update]||<script[sc_common_defaults].yaml_key[scripts.update]||sc_common_update>>]>
 sc_common_data:
     type: yaml data
-    version: 1.2.2
+    version: 1.2.3
     filename: common.yml
     scripts:
       reload: sc_common_init
@@ -287,6 +287,7 @@ sc_common_defaults:
       args_i: '&cInvalid arguments: [args]'
       boolean: '&cPlease specify true or false.'
       disabled: '&cPlugin is currently disabled.'
+      ingame: '&cThis command may only be used in-game.'
     update:
       notice: '&9Version &6[version] &9available at &a[url]'
       uptodate: '&9No new version available.'
@@ -299,19 +300,3 @@ sc_common_defaults:
       disabled: '&cUpdates disabled.'
       disabled-no: '&9Updates are already disabled.'
       specify: '&cPlease specify enable or disable.'
-#This tree exposes the layout of all commands and arguments with suitable permissions
-#sc_common_args:
-  #type: yaml data
-  #smellycraft:
-    #reload: admin
-    #update: admin
-    #set:
-      #feedback:
-        #chat:
-        #- admin
-        #- chatperm
-        #actionbar: admin
-        #custom: admin
-      #update:
-        #true: admin
-        #false: admin
